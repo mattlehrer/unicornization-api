@@ -13,6 +13,7 @@ import validationSchema from './config/validation-schema';
 import { LoggerModule } from './logger/logger.module';
 import { EmailToken } from './user/email-token.entity';
 import { UserModule } from './user/user.module';
+import { DomainModule } from './domain/domain.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { UserModule } from './user/user.module';
     NestEmitterModule.forRoot(new EventEmitter()),
     AnalyticsModule,
     AdminModule,
+    DomainModule,
   ],
   controllers: [AppController],
   providers: [],
