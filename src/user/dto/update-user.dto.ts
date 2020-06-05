@@ -6,8 +6,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { IsRequiredWith } from 'src/shared/decorators/is-required-with.decorator';
 import { IsStrongPassword } from 'src/shared/decorators/is-strong-password.decorator';
-import { IsRequiredWith } from '../../shared/decorators/is-required-with.decorator';
 
 export class UpdatePasswordInput {
   @IsString()

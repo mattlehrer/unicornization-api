@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EmailModule } from '../email/email.module';
+import { EmailModule } from 'src/email/email.module';
 import { EmailToken } from './email-token.entity';
 import { UserController } from './user.controller';
 import { User } from './user.entity';
