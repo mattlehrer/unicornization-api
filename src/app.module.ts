@@ -14,6 +14,7 @@ import { LoggerModule } from './logger/logger.module';
 import { EmailToken } from './user/email-token.entity';
 import { UserModule } from './user/user.module';
 import { DomainModule } from './domain/domain.module';
+import { IdeaModule } from './idea/idea.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DomainModule } from './domain/domain.module';
     AnalyticsModule,
     AdminModule,
     DomainModule,
+    IdeaModule,
   ],
   controllers: [AppController],
   providers: [],
