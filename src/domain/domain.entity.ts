@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { fromFQDN, toFQDN } from './fqdn.transformer';
 
 @Exclude()
 @Entity()
@@ -23,15 +24,18 @@ export class Domain extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @DeleteDateColumn()
-  deleted_at: Date;
+  @Expose()
+  @Column({
+    unique: true,
+    transformer: {
+      from: fromFQDN,
+      to: toFQDN,
+    },
+  })
+  name: FQDN;
 
   @Expose()
-  @Column({ unique: true })
-  name: string;
-
-  @Expose()
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true })
   user: User;
 
   @Expose()
@@ -51,4 +55,21 @@ export class Domain extends BaseEntity {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @DeleteDateColumn()
+  deleted_at: Date;
+
+  /*
+
+  TODO: add to traefik dynamic config on save or update
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  addToTraefik(): void {
+    newRedisKV({traefik.routers.rule.Host(`this.name`), tls=true, etc})
+  }
+
+  */
 }
+
+export type FQDN = string;
