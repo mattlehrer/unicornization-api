@@ -10,11 +10,11 @@ import { AuthModule } from './auth/auth.module';
 import appConfig from './config/app.config';
 import databaseConfig from './config/typeorm.config';
 import validationSchema from './config/validation-schema';
+import { DomainModule } from './domain/domain.module';
+import { IdeaModule } from './idea/idea.module';
 import { LoggerModule } from './logger/logger.module';
 import { EmailToken } from './user/email-token.entity';
 import { UserModule } from './user/user.module';
-import { DomainModule } from './domain/domain.module';
-import { IdeaModule } from './idea/idea.module';
 
 @Module({
   imports: [
