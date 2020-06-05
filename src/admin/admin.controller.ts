@@ -7,9 +7,9 @@ import { LoggerService } from 'src/logger/logger.service';
 import { Roles } from 'src/shared/decorators/roles.decorator';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { Role } from 'src/shared/interfaces/roles.enum';
+import { User } from 'src/user/user.entity';
+import { UserService } from 'src/user/user.service';
 import * as v8 from 'v8';
-import { User } from '../user/user.entity';
-import { UserService } from '../user/user.service';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.ADMIN, Role.ROOT)

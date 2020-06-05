@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import { LoggerService } from 'src/logger/logger.service';
 import { Role } from 'src/shared/interfaces/roles.enum';
+import { UserService } from 'src/user/user.service';
 import * as v8 from 'v8';
-import { UserService } from '../user/user.service';
 import { AdminController } from './admin.controller';
 
-jest.mock('../user/user.service');
+jest.mock('src/user/user.service');
 jest.mock('src/logger/logger.service');
 const mockPipe = jest.fn();
 jest.mock('v8', () => ({
