@@ -58,18 +58,6 @@ export class Domain extends BaseEntity {
 
   @DeleteDateColumn()
   deleted_at: Date;
-
-  /*
-
-  TODO: add to traefik dynamic config on save or update
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  addToTraefik(): void {
-    newRedisKV({traefik.routers.rule.Host(`this.name`), tls=true, etc})
-  }
-
-  */
 }
 
 export type FQDN = string;
