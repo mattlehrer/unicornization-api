@@ -32,6 +32,15 @@ export class Idea extends BaseEntity {
   @Column({ nullable: true })
   description?: string;
 
+  /*
+
+  TODO: 
+  add 'reported' boolean field? array?
+  how should this work?
+  add ot admin controller
+
+  */
+
   @Expose()
   @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true })
   user: User;
