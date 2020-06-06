@@ -1,4 +1,4 @@
-import { IsDefined, IsOptional, IsString } from 'class-validator';
+import { IsInstance, IsOptional, IsString } from 'class-validator';
 import { Domain } from 'src/domain/domain.entity';
 
 export class CreateIdeaDto {
@@ -9,6 +9,6 @@ export class CreateIdeaDto {
   @IsString()
   description?: string;
 
-  @IsDefined()
+  @IsInstance(Domain)
   domain: Domain;
 }
