@@ -1,4 +1,7 @@
-import { InternalServerErrorException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EventEmitter } from 'events';
@@ -6,6 +9,8 @@ import { EVENT_EMITTER_TOKEN } from 'nest-emitter';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
+import { CreateIdeaDto } from './dto/create-idea.dto';
+import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { Idea } from './idea.entity';
 import { IdeaService } from './idea.service';
 
@@ -22,11 +27,16 @@ const mockDomain: any = {
   user: mockUser,
 };
 const mockIdea = {
+  id: 101,
   headline: 'Mock idea',
   description: 'Mock description',
   user: mockUser,
   domain: mockDomain,
   save: jest.fn(),
+};
+const mockDeletedIdea = {
+  ...mockIdea,
+  deleted_at: new Date(),
 };
 const mockIdeaRepository = () => ({
   findOne: jest.fn(),
@@ -78,14 +88,15 @@ describe('IdeaService', () => {
   describe('create', () => {
     it('should return idea and emit newIdea event', async () => {
       emitter.emit = jest.fn();
+      const mockCreateDto: CreateIdeaDto = {
+        headline: mockIdea.headline,
+        description: mockIdea.description,
+        domain: mockDomain,
+      };
 
       const result = await ideaService.create({
         user: mockUser as User,
-        domain: mockDomain.name,
-        details: {
-          headline: mockIdea.headline,
-          description: mockIdea.description,
-        },
+        ...mockCreateDto,
       });
 
       expect(result).toEqual(mockIdea);
@@ -103,11 +114,9 @@ describe('IdeaService', () => {
       const result = await ideaService
         .create({
           user: mockUser as User,
-          domain: mockDomain.name,
-          details: {
-            headline: mockIdea.headline,
-            description: mockIdea.description,
-          },
+          domain: mockDomain,
+          headline: mockIdea.headline,
+          description: mockIdea.description,
         })
         .catch((e) => e);
 
@@ -121,7 +130,7 @@ describe('IdeaService', () => {
   describe('findAll', () => {
     it('should find all ideas', async () => {
       const mockIdea2: any = {};
-      Object.assign(mockIdea2, mockDomain);
+      Object.assign(mockIdea2, mockIdea);
       mockIdea2.id = 22;
       ideaRepository.find.mockResolvedValueOnce([mockIdea, mockIdea2]);
 
@@ -133,222 +142,200 @@ describe('IdeaService', () => {
     });
   });
 
-  // describe('findAllIncludingDeleted', () => {
-  //   it('should find all domains, including soft deleted', async () => {
-  //     const mockDomain2: any = {};
-  //     Object.assign(mockDomain2, mockDomain);
-  //     mockDomain2.id = 2;
-  //     domainRepository
-  //       .createQueryBuilder()
-  //       .withDeleted()
-  //       .getMany.mockResolvedValueOnce([
-  //         mockDomain,
-  //         mockDomain2,
-  //         mockDeletedDomain,
-  //       ]);
+  describe('findAllIncludingDeleted', () => {
+    it('should find all domains, including soft deleted', async () => {
+      const mockIdea2: any = {};
+      Object.assign(mockIdea2, mockIdea);
+      mockIdea2.id = 12;
+      ideaRepository
+        .createQueryBuilder()
+        .withDeleted()
+        .getMany.mockResolvedValueOnce([mockIdea, mockIdea2, mockDeletedIdea]);
 
-  //     const result = await domainService.findAllIncludingDeleted();
+      const result = await ideaService.findAllIncludingDeleted();
 
-  //     expect(result).toStrictEqual([
-  //       mockDomain,
-  //       mockDomain2,
-  //       mockDeletedDomain,
-  //     ]);
-  //     expect(
-  //       domainRepository.createQueryBuilder().withDeleted,
-  //     ).toHaveBeenCalledWith(/* nothing */);
-  //     expect(
-  //       domainRepository.createQueryBuilder().withDeleted().getMany,
-  //     ).toHaveBeenCalledWith(/* nothing */);
-  //     expect(
-  //       domainRepository.createQueryBuilder().where().getMany,
-  //     ).toHaveBeenCalledTimes(1);
-  //   });
-  // });
+      expect(result).toStrictEqual([mockIdea, mockIdea2, mockDeletedIdea]);
+      expect(
+        ideaRepository.createQueryBuilder().withDeleted,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        ideaRepository.createQueryBuilder().withDeleted().getMany,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        ideaRepository.createQueryBuilder().where().getMany,
+      ).toHaveBeenCalledTimes(1);
+    });
+  });
 
-  // describe('findAllDeleted', () => {
-  //   it('should find all users, including soft deleted', async () => {
-  //     domainRepository
-  //       .createQueryBuilder()
-  //       .withDeleted()
-  //       .where()
-  //       .getMany.mockResolvedValueOnce([mockDeletedDomain]);
+  describe('findAllDeleted', () => {
+    it('should find all users, including soft deleted', async () => {
+      ideaRepository
+        .createQueryBuilder()
+        .withDeleted()
+        .where()
+        .getMany.mockResolvedValueOnce([mockDeletedIdea]);
 
-  //     const result = await domainService.findAllDeleted();
+      const result = await ideaService.findAllDeleted();
 
-  //     expect(result).toStrictEqual([mockDeletedDomain]);
-  //     expect(
-  //       domainRepository.createQueryBuilder().withDeleted,
-  //     ).toHaveBeenCalledWith(/* nothing */);
-  //     expect(
-  //       domainRepository.createQueryBuilder().withDeleted().where,
-  //     ).toHaveBeenCalledWith('deleted_at is not null');
-  //     expect(
-  //       domainRepository.createQueryBuilder().withDeleted().getMany,
-  //     ).toHaveBeenCalledWith(/* nothing */);
-  //     expect(
-  //       domainRepository.createQueryBuilder().where().getMany,
-  //     ).toHaveBeenCalledTimes(1);
-  //   });
-  // });
+      expect(result).toStrictEqual([mockDeletedIdea]);
+      expect(
+        ideaRepository.createQueryBuilder().withDeleted,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        ideaRepository.createQueryBuilder().withDeleted().where,
+      ).toHaveBeenCalledWith('deleted_at is not null');
+      expect(
+        ideaRepository.createQueryBuilder().withDeleted().getMany,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        ideaRepository.createQueryBuilder().where().getMany,
+      ).toHaveBeenCalledTimes(1);
+    });
+  });
 
-  // describe('findOneById', () => {
-  //   it('should return domain', async () => {
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
+  describe('findOneById', () => {
+    it('should return idea', async () => {
+      ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
 
-  //     const result = await domainService.findOneById(mockDomain.id);
+      const result = await ideaService.findOneById(mockIdea.id);
 
-  //     expect(domainRepository.findOne).toHaveBeenCalledWith({
-  //       id: mockDomain.id,
-  //     });
-  //     expect(domainRepository.findOne).toHaveBeenCalledTimes(1);
-  //     expect(result).toEqual(mockDomain);
-  //   });
-  // });
+      expect(ideaRepository.findOne).toHaveBeenCalledWith({
+        id: mockIdea.id,
+      });
+      expect(ideaRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockIdea);
+    });
+  });
 
-  // describe('findOneByName', () => {
-  //   it('should return domain', async () => {
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
+  describe('updateOne', () => {
+    it('should update idea fields', async () => {
+      const updateDto: any = {
+        description: 'great idea',
+      };
+      const updatedIdea = {
+        ...mockIdea,
+        ...updateDto,
+      };
+      ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
+      mockIdea.save.mockResolvedValueOnce(updatedIdea);
 
-  //     const result = await domainService.findOneByName(mockDomain.name);
+      const result = await ideaService.updateOne({
+        user: mockUser as User,
+        id: mockIdea.id,
+        fieldsToUpdate: updateDto,
+      });
 
-  //     expect(domainRepository.findOne).toHaveBeenCalledWith({
-  //       name: mockDomain.name,
-  //     });
-  //     expect(domainRepository.findOne).toHaveBeenCalledTimes(1);
-  //     expect(result).toEqual(mockDomain);
-  //   });
-  // });
+      expect(ideaRepository.findOne).toHaveBeenCalledWith({
+        id: mockIdea.id,
+      });
+      expect(ideaRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(mockIdea.save).toHaveBeenCalledWith(/* nothing */);
+      expect(mockIdea.save).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
+    });
 
-  // describe('updateOne', () => {
-  //   it('should update domain fields', async () => {
-  //     const updateDto: any = {
-  //       lastCheckedDNS: true,
-  //     };
-  //     const updatedDomain = {
-  //       ...mockDomain,
-  //       ...updateDto,
-  //     };
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
-  //     mockDomain.save.mockResolvedValueOnce(updatedDomain);
+    it('when db throws unknown error, should throw InternalServerErrorException', async () => {
+      const updateDto: UpdateIdeaDto = {
+        description: 'good idea',
+      };
+      ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
+      mockIdea.save.mockRejectedValueOnce(new Error('db error'));
 
-  //     const result = await domainService.updateOne({
-  //       user: mockUser as User,
-  //       id: mockDomain.id,
-  //       fieldsToUpdate: updateDto,
-  //     });
+      const error = await ideaService
+        .updateOne({
+          user: mockUser as User,
+          id: mockIdea.id,
+          fieldsToUpdate: updateDto,
+        })
+        .catch((e) => e);
 
-  //     expect(domainRepository.findOne).toHaveBeenCalledWith({
-  //       id: mockDomain.id,
-  //     });
-  //     expect(domainRepository.findOne).toHaveBeenCalledTimes(1);
-  //     expect(mockDomain.save).toHaveBeenCalledWith(/* nothing */);
-  //     expect(mockDomain.save).toHaveBeenCalledTimes(1);
-  //     expect(result).toBeUndefined();
-  //   });
+      expect(ideaRepository.findOne).toHaveBeenCalledWith({
+        id: mockIdea.id,
+      });
+      expect(ideaRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+      expect(error).toMatchInlineSnapshot(`[Error: Internal Server Error]`);
+      expect(mockIdea.save).toHaveBeenCalledWith(/* nothing */);
+      expect(mockIdea.save).toHaveBeenCalledTimes(1);
+    });
 
-  //   it('when db throws unknown error, should throw InternalServerErrorException', async () => {
-  //     const updateDto: any = {
-  //       lastCheckedDNS: true,
-  //     };
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
-  //     mockDomain.save.mockRejectedValueOnce(new Error('db error'));
+    it('when user does not own idea, should throw UnauthorizedException', async () => {
+      const updateDto: any = {
+        description: 'this is the best mock idea',
+      };
+      const mockUnownedIdea = {
+        ...mockIdea,
+        user: {
+          ...mockUser,
+          id: mockUser.id + 1,
+        },
+      };
+      ideaRepository.findOne.mockResolvedValueOnce(mockUnownedIdea);
+      // mockIdea.save.mockRejectedValueOnce(new Error('db error'));
 
-  //     const error = await domainService
-  //       .updateOne({
-  //         user: mockUser as User,
-  //         id: mockDomain.id,
-  //         fieldsToUpdate: updateDto,
-  //       })
-  //       .catch((e) => e);
+      const error = await ideaService
+        .updateOne({
+          user: mockUser as User,
+          id: mockUnownedIdea.id,
+          fieldsToUpdate: updateDto,
+        })
+        .catch((e) => e);
 
-  //     expect(domainRepository.findOne).toHaveBeenCalledWith({
-  //       id: mockDomain.id,
-  //     });
-  //     expect(domainRepository.findOne).toHaveBeenCalledTimes(1);
-  //     expect(error).toBeInstanceOf(InternalServerErrorException);
-  //     expect(error).toMatchInlineSnapshot(`[Error: Internal Server Error]`);
-  //     expect(mockDomain.save).toHaveBeenCalledWith(/* nothing */);
-  //     expect(mockDomain.save).toHaveBeenCalledTimes(1);
-  //   });
+      expect(ideaRepository.findOne).toHaveBeenCalledWith({
+        id: mockUnownedIdea.id,
+      });
+      expect(ideaRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(error).toBeInstanceOf(UnauthorizedException);
+      expect(error).toMatchInlineSnapshot(`[Error: Unauthorized]`);
+    });
 
-  //   it('when user does not own domain, should throw UnauthorizedException', async () => {
-  //     const updateDto: any = {
-  //       lastCheckedDNS: true,
-  //     };
-  //     const mockUnownedDomain = {
-  //       ...mockDomain,
-  //       user: {
-  //         ...mockUser,
-  //         id: mockUser.id + 1,
-  //       },
-  //     };
-  //     domainRepository.findOne.mockResolvedValueOnce(mockUnownedDomain);
-  //     // mockDomain.save.mockRejectedValueOnce(new Error('db error'));
+    it('when updateDto has no updates, return idea unchanged', async () => {
+      const updateDto: any = {
+        description: undefined,
+      };
+      ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
 
-  //     const error = await domainService
-  //       .updateOne({
-  //         user: mockUser as User,
-  //         id: mockUnownedDomain.id,
-  //         fieldsToUpdate: updateDto,
-  //       })
-  //       .catch((e) => e);
+      const result = await ideaService.updateOne({
+        user: mockUser as User,
+        id: mockIdea.id,
+        fieldsToUpdate: updateDto,
+      });
 
-  //     expect(domainRepository.findOne).toHaveBeenCalledWith({
-  //       id: mockUnownedDomain.id,
-  //     });
-  //     expect(domainRepository.findOne).toHaveBeenCalledTimes(1);
-  //     expect(error).toBeInstanceOf(UnauthorizedException);
-  //     expect(error).toMatchInlineSnapshot(`[Error: Unauthorized]`);
-  //   });
+      expect(ideaRepository.findOne).toHaveBeenCalledWith({
+        id: mockIdea.id,
+      });
+      expect(ideaRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
+      expect(mockIdea.save).not.toHaveBeenCalled();
+    });
+  });
 
-  //   it('when updateDto has no updates, return user unchanged', async () => {
-  //     const updateDto: any = {
-  //       lastCheckedDNS: undefined,
-  //     };
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
+  describe('delete', () => {
+    it('should softDelete a domain', async () => {
+      ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
+      ideaRepository.softDelete.mockResolvedValueOnce({ affected: 1 });
 
-  //     const result = await domainService.updateOne({
-  //       user: mockUser as User,
-  //       id: mockDomain.id,
-  //       fieldsToUpdate: updateDto,
-  //     });
+      const result = await ideaService.deleteOne({
+        id: mockIdea.id,
+        user: mockUser as User,
+      });
 
-  //     expect(domainRepository.findOne).toHaveBeenCalledWith({
-  //       id: mockDomain.id,
-  //     });
-  //     expect(domainRepository.findOne).toHaveBeenCalledTimes(1);
-  //     expect(result).toBeUndefined();
-  //     expect(mockDomain.save).not.toHaveBeenCalled();
-  //   });
-  // });
+      expect(ideaRepository.softDelete).toHaveBeenCalledWith(mockIdea.id);
+      expect(ideaRepository.softDelete).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
+    });
 
-  // describe('delete', () => {
-  //   it('should softDelete a domain', async () => {
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
-  //     domainRepository.softDelete.mockResolvedValueOnce({ affected: 1 });
+    it("when db doesn't soft delete, should throw InternalServerErrorException", async () => {
+      ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
+      ideaRepository.softDelete.mockResolvedValueOnce({ affected: 0 });
 
-  //     const result = await domainService.deleteOne({
-  //       id: mockDomain.user,
-  //       user: mockUser as User,
-  //     });
+      const error = await ideaService
+        .deleteOne({ id: mockIdea.id, user: mockUser as User })
+        .catch((e) => e);
 
-  //     expect(domainRepository.softDelete).toHaveBeenCalledWith(mockDomain.id);
-  //     expect(domainRepository.softDelete).toHaveBeenCalledTimes(1);
-  //     expect(result).toBeUndefined();
-  //   });
-
-  //   it("when db doesn't soft delete, should throw InternalServerErrorException", async () => {
-  //     domainRepository.findOne.mockResolvedValueOnce(mockDomain);
-  //     domainRepository.softDelete.mockResolvedValueOnce({ affected: 0 });
-
-  //     const error = await domainService
-  //       .deleteOne({ id: mockDomain.user, user: mockUser as User })
-  //       .catch((e) => e);
-
-  //     expect(domainRepository.softDelete).toHaveBeenCalledWith(mockDomain.id);
-  //     expect(domainRepository.softDelete).toHaveBeenCalledTimes(1);
-  //     expect(error).toBeInstanceOf(InternalServerErrorException);
-  //   });
-  // });
+      expect(ideaRepository.softDelete).toHaveBeenCalledWith(mockIdea.id);
+      expect(ideaRepository.softDelete).toHaveBeenCalledTimes(1);
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+    });
+  });
 });

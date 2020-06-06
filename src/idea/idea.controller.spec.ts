@@ -1,18 +1,140 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Domain } from 'src/domain/domain.entity';
+import { IUserRequest } from 'src/shared/interfaces/user-request.interface';
+import { CreateIdeaDto } from './dto/create-idea.dto';
+import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { IdeaController } from './idea.controller';
+import { IdeaService } from './idea.service';
+
+jest.mock('./idea.service');
+
+const mockUser = {
+  id: 1,
+};
+const mockDomain = { id: 1, name: 'mock.com' };
+const createIdeaDto: CreateIdeaDto = {
+  headline: 'uber for mocks',
+  domain: mockDomain as Domain,
+};
+const mockIdea = {
+  id: 100,
+  ...createIdeaDto,
+};
+const mockReq: any = {
+  user: mockUser,
+};
 
 describe('Idea Controller', () => {
-  let controller: IdeaController;
+  let ideaController: IdeaController;
+  let ideaService;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       controllers: [IdeaController],
+      providers: [IdeaService],
     }).compile();
 
-    controller = module.get<IdeaController>(IdeaController);
+    ideaController = module.get<IdeaController>(IdeaController);
+    ideaService = module.get<IdeaService>(IdeaService);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(ideaController).toBeDefined();
+  });
+
+  describe('POST /domain', () => {
+    it('should call ideaService.create', async () => {
+      ideaService.create.mockResolvedValueOnce(mockDomain);
+
+      const result = await ideaController.create(
+        mockReq as IUserRequest,
+        createIdeaDto,
+      );
+
+      expect(ideaService.create).toHaveBeenCalledWith({
+        user: mockUser,
+        ...createIdeaDto,
+      });
+      expect(ideaService.create).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockDomain);
+    });
+  });
+
+  describe('GET /idea/:id', () => {
+    it('should return an idea by id', async () => {
+      ideaService.findOneById.mockResolvedValueOnce(mockIdea);
+      mockReq.params = {
+        id: mockIdea.id,
+      };
+
+      const response = await ideaController.getById(mockReq.params.id);
+
+      expect(ideaService.findOneById).toHaveBeenCalledWith(mockIdea.id);
+      expect(ideaService.findOneById).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(mockIdea);
+    });
+
+    it('should return a 404 if idea not found', async () => {
+      ideaService.findOneById.mockResolvedValueOnce(undefined);
+      const nonExistingIdea = {
+        id: 101,
+        domain: mockDomain,
+        headline: 'blah',
+      };
+
+      const error = await ideaController
+        .getById(nonExistingIdea.id)
+        .catch((e) => e);
+
+      expect(ideaService.findOneById).toHaveBeenCalledWith(nonExistingIdea.id);
+      expect(ideaService.findOneById).toHaveBeenCalledTimes(1);
+      expect(error).toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('PATCH /idea/:id', () => {
+    it('should call ideaService.updateOne and return void', async () => {
+      const updateDto: UpdateIdeaDto = {
+        description: 'better description',
+      };
+      mockReq.params = {
+        id: 100,
+      };
+      ideaService.updateOne.mockResolvedValueOnce(undefined);
+
+      const response = await ideaController.update(
+        mockReq,
+        mockReq.params.id,
+        updateDto,
+      );
+
+      expect(ideaService.updateOne).toHaveBeenCalledWith({
+        user: mockReq.user,
+        id: mockReq.params.id,
+        fieldsToUpdate: updateDto,
+      });
+      expect(ideaService.updateOne).toHaveBeenCalledTimes(1);
+      expect(response).toBeUndefined();
+    });
+  });
+
+  describe('DELETE /idea/:id', () => {
+    it('should call ideaService.deleteOne and return void', async () => {
+      mockReq.params = {
+        id: 100,
+      };
+      ideaService.deleteOne.mockResolvedValueOnce(undefined);
+
+      const response = await ideaController.delete(mockReq, mockReq.params.id);
+
+      expect(ideaService.deleteOne).toHaveBeenCalledWith({
+        user: mockReq.user,
+        id: mockReq.params.id,
+      });
+      expect(ideaService.deleteOne).toHaveBeenCalledTimes(1);
+      expect(response).toBeUndefined();
+    });
   });
 });
