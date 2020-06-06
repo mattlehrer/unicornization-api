@@ -23,7 +23,7 @@ const mockUser = {
   isAdmin: () => false,
 };
 const mockDomain: any = {
-  id: 1,
+  id: 10,
   name: 'mock.com',
   save: jest.fn(),
   user: mockUser,
@@ -345,7 +345,7 @@ describe('DomainService', () => {
       expect(error).toMatchInlineSnapshot(`[Error: Unauthorized]`);
     });
 
-    it('when updateDto has no updates, return user unchanged', async () => {
+    it('when updateDto has no updates, return domain unchanged', async () => {
       const updateDto: any = {
         lastCheckedDNS: undefined,
       };
@@ -372,7 +372,7 @@ describe('DomainService', () => {
       domainRepository.softDelete.mockResolvedValueOnce({ affected: 1 });
 
       const result = await domainService.deleteOne({
-        id: mockDomain.user,
+        id: mockDomain.id,
         user: mockUser as User,
       });
 
@@ -386,7 +386,7 @@ describe('DomainService', () => {
       domainRepository.softDelete.mockResolvedValueOnce({ affected: 0 });
 
       const error = await domainService
-        .deleteOne({ id: mockDomain.user, user: mockUser as User })
+        .deleteOne({ id: mockDomain.id, user: mockUser as User })
         .catch((e) => e);
 
       expect(domainRepository.softDelete).toHaveBeenCalledWith(mockDomain.id);
