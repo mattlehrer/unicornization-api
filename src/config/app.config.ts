@@ -8,6 +8,18 @@ export default (): Record<string, unknown> => ({
     port: parseInt(process.env.PORT, 10),
     baseUrl: process.env.BASE_URL,
   },
+  traefik: {
+    service: process.env.TRAEFIK_SERVICE,
+  },
+  redis: {
+    // https://github.com/skunight/nestjs-redis
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT),
+    db: parseInt(process.env.REDIS_DB),
+    password: process.env.REDIS_PASSWORD,
+    keyPrefix: process.env.REDIS_PRIFIX,
+    enableReadyCheck: Boolean(process.env.REDIS_READY_CHECK),
+  },
   frontend: {
     baseUrl: process.env.FRONTEND_BASE_URL,
     loginSuccess: '/login/success/',

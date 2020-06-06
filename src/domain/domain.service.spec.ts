@@ -3,10 +3,12 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EventEmitter } from 'events';
 import { EVENT_EMITTER_TOKEN } from 'nest-emitter';
+import { RedisService } from 'nestjs-redis';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
 import { QueryFailedError, Repository } from 'typeorm';
@@ -14,6 +16,7 @@ import { Domain } from './domain.entity';
 import { DomainService } from './domain.service';
 
 jest.mock('src/logger/logger.service');
+jest.mock('@nestjs/config');
 
 const mockUser = {
   id: 1,
@@ -40,7 +43,7 @@ const mockDomainRepository = () => ({
   createQueryBuilder: jest.fn().mockReturnValue({
     select: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),
-    where: jest.fn().mockReturnThis().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
     withDeleted: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
     getOne: jest.fn(),
@@ -48,10 +51,26 @@ const mockDomainRepository = () => ({
   }),
 });
 
+const mockRedisService = () => ({
+  getClient: jest.fn().mockReturnValue({
+    multi: jest.fn().mockReturnValue({
+      set: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockReturnValue([
+        [null, 'OK'],
+        [null, 'OK'],
+        [null, 'OK'],
+        [null, 'OK'],
+      ]),
+    }),
+  }),
+});
+
 describe('DomainService', () => {
   let domainService: DomainService;
   let domainRepository;
   let emitter;
+  let redisService;
+  let configService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -65,6 +84,8 @@ describe('DomainService', () => {
         },
         { provide: EVENT_EMITTER_TOKEN, useValue: EventEmitter },
         LoggerService,
+        { provide: RedisService, useFactory: mockRedisService },
+        ConfigService,
       ],
     }).compile();
 
@@ -73,6 +94,8 @@ describe('DomainService', () => {
       getRepositoryToken(Domain),
     );
     emitter = module.get<EventEmitter>(EVENT_EMITTER_TOKEN);
+    redisService = module.get<RedisService>(RedisService);
+    configService = module.get<ConfigService>(ConfigService);
   });
 
   it('should be defined', () => {
@@ -368,6 +391,74 @@ describe('DomainService', () => {
 
       expect(domainRepository.softDelete).toHaveBeenCalledWith(mockDomain.id);
       expect(domainRepository.softDelete).toHaveBeenCalledTimes(1);
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+    });
+  });
+
+  describe('addDomainToTraefik', () => {
+    it('should add traefik details', async () => {
+      configService.get.mockReturnValueOnce('MockService@docker');
+
+      const result = await domainService.addDomainToTraefik(mockDomain.name);
+
+      expect(result).toBeUndefined();
+      expect(redisService.getClient).toHaveBeenCalledWith(/* nothing */);
+      expect(redisService.getClient).toHaveBeenCalledTimes(1);
+      expect(
+        redisService.getClient().multi,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(redisService.getClient().multi).toHaveBeenCalledTimes(1);
+      expect(redisService.getClient().multi().set.mock.calls[0])
+        .toMatchInlineSnapshot(`
+        Array [
+          "traefik/http/routers/mock.com/rule",
+          "Host(\`mock.com\`)",
+        ]
+      `);
+      expect(redisService.getClient().multi().set.mock.calls[1])
+        .toMatchInlineSnapshot(`
+        Array [
+          "http/routers/mock.com/tls",
+          "true",
+        ]
+      `);
+      expect(redisService.getClient().multi().set.mock.calls[2])
+        .toMatchInlineSnapshot(`
+        Array [
+          "traefik/http/routers/mock.com/tls/certResolver",
+          "letsencrypt",
+        ]
+      `);
+      expect(redisService.getClient().multi().set.mock.calls[3])
+        .toMatchInlineSnapshot(`
+        Array [
+          "traefik/http/routers/mock.com/service",
+          "MockService@docker",
+        ]
+      `);
+      expect(redisService.getClient().multi().set).toHaveBeenCalledTimes(4);
+      expect(
+        redisService.getClient().multi().exec,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(redisService.getClient().multi().exec).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw InternalServerErrorException on any error from redis', async () => {
+      configService.get.mockReturnValueOnce('MockService@docker');
+      redisService
+        .getClient()
+        .multi()
+        .exec.mockReturnValueOnce([
+          [new Error(), 'ERROR'],
+          [null, 'OK'],
+          [null, 'OK'],
+          [null, 'OK'],
+        ]);
+
+      const error = await domainService
+        .addDomainToTraefik(mockDomain.name)
+        .catch((e) => e);
+
       expect(error).toBeInstanceOf(InternalServerErrorException);
     });
   });

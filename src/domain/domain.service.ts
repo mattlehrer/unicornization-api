@@ -4,8 +4,10 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectEventEmitter } from 'nest-emitter';
+import { RedisService } from 'nestjs-redis';
 import { LoggerService } from 'src/logger/logger.service';
 import { PostgresErrorCode } from 'src/shared/interfaces/postgres.enum';
 import { User } from 'src/user/user.entity';
@@ -22,6 +24,8 @@ export class DomainService {
     private readonly domainRepository: Repository<Domain>,
     @InjectEventEmitter() private readonly emitter: DomainEventEmitter,
     private readonly logger: LoggerService,
+    private readonly redisService: RedisService,
+    private readonly configService: ConfigService,
   ) {
     this.logger.setContext(DomainService.name);
   }
@@ -30,6 +34,7 @@ export class DomainService {
     const domain = this.domainRepository.create({ name, user });
 
     await this.handleSave(domain);
+    await this.addDomainToTraefik(domain.name);
 
     this.emitter.emit('newDomain', domain);
 
@@ -99,6 +104,33 @@ export class DomainService {
 
     const result = await this.domainRepository.softDelete(domain.id);
     return this.handleDbUpdateResult(result);
+  }
+
+  async addDomainToTraefik(domain: FQDN): Promise<void> {
+    const redisPipeline = this.redisService.getClient().multi();
+    const results = await redisPipeline
+      // https://docs.traefik.io/reference/dynamic-configuration/kv/
+      // https://docs.traefik.io/routing/routers/
+      .set(`traefik/http/routers/${domain}/rule`, `Host(\`${domain}\`)`)
+      .set(`http/routers/${domain}/tls`, 'true')
+      .set(`traefik/http/routers/${domain}/tls/certResolver`, 'letsencrypt')
+      .set(
+        `traefik/http/routers/${domain}/service`,
+        this.configService.get('traefik.service'),
+      )
+      .exec();
+
+    // TODO: if error, add to queue to try again?
+    // what are possible errors besides redis going down?
+    if (results.some((res) => res[0]))
+      throw new InternalServerErrorException(results);
+    this.logger.log(
+      `Added Traefik rules for ${domain}\nRedis response: ${JSON.stringify(
+        results,
+      )}`,
+    );
+
+    return;
   }
 
   /* 
