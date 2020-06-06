@@ -102,6 +102,8 @@ describe('Admin Controller', () => {
 
     expect(v8.getHeapSnapshot).toHaveBeenCalledWith(/* nothing */);
     expect(v8.getHeapSnapshot).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(/* nothing */);
+    expect(spy).toHaveBeenCalledTimes(1);
     expect(mockPipe).toBeCalledWith(mockWriteStream);
     expect(mockPipe).toBeCalledTimes(1);
     expect(response).toBeUndefined();
