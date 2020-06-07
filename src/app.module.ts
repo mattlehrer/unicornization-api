@@ -15,6 +15,7 @@ import { IdeaModule } from './idea/idea.module';
 import { LoggerModule } from './logger/logger.module';
 import { EmailToken } from './user/email-token.entity';
 import { UserModule } from './user/user.module';
+import { VoteModule } from './vote/vote.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { UserModule } from './user/user.module';
     AdminModule,
     DomainModule,
     IdeaModule,
+    VoteModule,
   ],
   controllers: [AppController],
   providers: [],
