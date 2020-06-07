@@ -56,6 +56,20 @@ export class IdeaService {
     return await this.ideaRepository.findOne({ id });
   }
 
+  async findAllIdeasForADomain(domainId: number): Promise<Idea[]> {
+    return await this.ideaRepository
+      .createQueryBuilder('idea')
+      .where('idea.domain = :domainId', { domainId })
+      .getMany();
+  }
+
+  async findAllIdeasOfAUser(userId: number): Promise<Idea[]> {
+    return await this.ideaRepository
+      .createQueryBuilder('idea')
+      .where('idea.user = :userId', { userId })
+      .getMany();
+  }
+
   async updateOne({
     user,
     id,
@@ -65,21 +79,21 @@ export class IdeaService {
     id: number;
     fieldsToUpdate: UpdateIdeaDto;
   }): Promise<void> {
-    const domain = await this.findOneById(id);
+    const vote = await this.findOneById(id);
 
-    this.continueIfAuthorized(domain, user);
+    this.continueIfAuthorized(vote, user);
 
     // Remove undefined keys for update
     for (const key in fieldsToUpdate) {
       if (typeof fieldsToUpdate[key] === 'undefined') {
         delete fieldsToUpdate[key];
       } else {
-        domain[key] = fieldsToUpdate[key];
+        vote[key] = fieldsToUpdate[key];
       }
     }
 
     if (Object.entries(fieldsToUpdate).length > 0) {
-      await this.handleSave(domain);
+      await this.handleSave(vote);
     }
 
     return;

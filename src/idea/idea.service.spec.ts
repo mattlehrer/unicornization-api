@@ -111,7 +111,7 @@ describe('IdeaService', () => {
       mockIdea.save.mockRejectedValueOnce(new Error('Test'));
       emitter.emit = jest.fn();
 
-      const result = await ideaService
+      const error = await ideaService
         .create({
           user: mockUser as User,
           domain: mockDomain,
@@ -120,7 +120,7 @@ describe('IdeaService', () => {
         })
         .catch((e) => e);
 
-      expect(result).toBeInstanceOf(InternalServerErrorException);
+      expect(error).toBeInstanceOf(InternalServerErrorException);
       expect(mockIdea.save).toHaveBeenCalledWith(/* nothing */);
       expect(mockIdea.save).toHaveBeenCalledTimes(1);
       expect(emitter.emit).not.toHaveBeenCalled();
@@ -204,6 +204,61 @@ describe('IdeaService', () => {
       });
       expect(ideaRepository.findOne).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockIdea);
+    });
+  });
+
+  describe('findAllIdeasForADomain', () => {
+    it('should find all ideas for a domain', async () => {
+      const mockIdea2: any = {};
+      Object.assign(mockIdea2, mockIdea);
+      mockIdea2.id = 22;
+      ideaRepository
+        .createQueryBuilder()
+        .where()
+        .getMany.mockResolvedValueOnce([mockIdea, mockIdea2]);
+
+      const result = await ideaService.findAllIdeasForADomain(mockDomain.id);
+
+      expect(result).toStrictEqual([mockIdea, mockIdea2]);
+      expect(ideaRepository.createQueryBuilder).toHaveBeenCalledWith('idea');
+      expect(ideaRepository.createQueryBuilder().where).toHaveBeenCalledWith(
+        'idea.domain = :domainId',
+        {
+          domainId: mockDomain.id,
+        },
+      );
+      expect(
+        ideaRepository.createQueryBuilder().getMany,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        ideaRepository.createQueryBuilder().where().getMany,
+      ).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findAllIdeasOfAUser', () => {
+    it('should find all ideas of a user', async () => {
+      const mockIdea2: any = {};
+      Object.assign(mockIdea2, mockIdea);
+      mockIdea2.id = 22;
+      ideaRepository
+        .createQueryBuilder()
+        .where()
+        .getMany.mockResolvedValueOnce([mockIdea, mockIdea2]);
+
+      const result = await ideaService.findAllIdeasOfAUser(mockUser.id);
+
+      expect(result).toStrictEqual([mockIdea, mockIdea2]);
+      expect(ideaRepository.createQueryBuilder).toHaveBeenCalledWith('idea');
+      expect(
+        ideaRepository.createQueryBuilder().where,
+      ).toHaveBeenCalledWith('idea.user = :userId', { userId: mockUser.id });
+      expect(
+        ideaRepository.createQueryBuilder().getMany,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        ideaRepository.createQueryBuilder().where().getMany,
+      ).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -311,7 +366,7 @@ describe('IdeaService', () => {
   });
 
   describe('delete', () => {
-    it('should softDelete a domain', async () => {
+    it('should softDelete a vote', async () => {
       ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
       ideaRepository.softDelete.mockResolvedValueOnce({ affected: 1 });
 

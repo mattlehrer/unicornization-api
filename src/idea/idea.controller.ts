@@ -43,6 +43,16 @@ export class IdeaController {
     throw new NotFoundException();
   }
 
+  @Get('/domain/:id')
+  async getAllIdeasForADomain(@Param('id') domainId: number): Promise<Idea[]> {
+    return await this.ideaService.findAllIdeasForADomain(domainId);
+  }
+
+  @Get('/user/:id')
+  async getAllIdeasOfAUser(@Param('id') userId: number): Promise<Idea[]> {
+    return await this.ideaService.findAllIdeasOfAUser(userId);
+  }
+
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Patch('/:id')

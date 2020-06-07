@@ -44,7 +44,7 @@ describe('Idea Controller', () => {
     expect(ideaController).toBeDefined();
   });
 
-  describe('POST /domain', () => {
+  describe('POST /idea', () => {
     it('should call ideaService.create', async () => {
       ideaService.create.mockResolvedValueOnce(mockDomain);
 
@@ -91,6 +91,42 @@ describe('Idea Controller', () => {
       expect(ideaService.findOneById).toHaveBeenCalledWith(nonExistingIdea.id);
       expect(ideaService.findOneById).toHaveBeenCalledTimes(1);
       expect(error).toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('GET /idea/domain/:id', () => {
+    it('should return all ideas for a domain', async () => {
+      ideaService.findAllIdeasForADomain.mockResolvedValueOnce([mockIdea]);
+      mockReq.param = {
+        id: mockDomain.id,
+      };
+
+      const response = await ideaController.getAllIdeasForADomain(
+        mockReq.param.id,
+      );
+
+      expect(ideaService.findAllIdeasForADomain).toHaveBeenCalledWith(
+        mockDomain.id,
+      );
+      expect(ideaService.findAllIdeasForADomain).toHaveBeenCalledTimes(1);
+      expect(response).toEqual([mockIdea]);
+    });
+  });
+
+  describe('GET /idea/user/:id', () => {
+    it('should return all ideas of a user', async () => {
+      ideaService.findAllIdeasOfAUser.mockResolvedValueOnce([mockIdea]);
+      mockReq.param = {
+        id: mockUser.id,
+      };
+
+      const response = await ideaController.getAllIdeasOfAUser(
+        mockReq.param.id,
+      );
+
+      expect(ideaService.findAllIdeasOfAUser).toHaveBeenCalledWith(mockUser.id);
+      expect(ideaService.findAllIdeasOfAUser).toHaveBeenCalledTimes(1);
+      expect(response).toEqual([mockIdea]);
     });
   });
 
