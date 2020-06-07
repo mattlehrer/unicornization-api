@@ -83,6 +83,25 @@ describe('Domain Controller', () => {
     });
   });
 
+  describe('GET /domain/user/:id', () => {
+    it('should return all domains of a user', async () => {
+      domainService.findAllDomainsOfAUser.mockResolvedValueOnce([mockDomain]);
+      mockReq.param = {
+        id: mockUser.id,
+      };
+
+      const response = await domainController.getAllDomainsOfAUser(
+        mockReq.param.id,
+      );
+
+      expect(domainService.findAllDomainsOfAUser).toHaveBeenCalledWith(
+        mockUser.id,
+      );
+      expect(domainService.findAllDomainsOfAUser).toHaveBeenCalledTimes(1);
+      expect(response).toEqual([mockDomain]);
+    });
+  });
+
   describe('PATCH /domain/:id', () => {
     it('should call domainService.updateOne and return void', async () => {
       const updateDto: UpdateDomainDto = {

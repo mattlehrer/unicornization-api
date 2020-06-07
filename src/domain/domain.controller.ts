@@ -46,6 +46,11 @@ export class DomainController {
     throw new NotFoundException();
   }
 
+  @Get('/user/:id')
+  async getAllDomainsOfAUser(@Param('id') userId: number): Promise<Domain[]> {
+    return await this.domainService.findAllDomainsOfAUser(userId);
+  }
+
   @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Patch('/:id')

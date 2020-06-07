@@ -68,6 +68,13 @@ export class DomainService {
     return await this.domainRepository.findOne({ name: toFQDN(name) });
   }
 
+  async findAllDomainsOfAUser(userId: number): Promise<Domain[]> {
+    return await this.domainRepository
+      .createQueryBuilder('domain')
+      .where('domain.user = :userId', { userId })
+      .getMany();
+  }
+
   async updateOne({
     user,
     id,

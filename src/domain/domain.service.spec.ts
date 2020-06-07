@@ -263,6 +263,34 @@ describe('DomainService', () => {
     });
   });
 
+  describe('findAllDomainsOfAUser', () => {
+    it('should find all domains of a user', async () => {
+      const mockDomain2: any = {};
+      Object.assign(mockDomain2, mockDomain);
+      mockDomain2.id = 202;
+      domainRepository
+        .createQueryBuilder()
+        .where()
+        .getMany.mockResolvedValueOnce([mockDomain, mockDomain2]);
+
+      const result = await domainService.findAllDomainsOfAUser(mockUser.id);
+
+      expect(result).toStrictEqual([mockDomain, mockDomain2]);
+      expect(domainRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'domain',
+      );
+      expect(
+        domainRepository.createQueryBuilder().where,
+      ).toHaveBeenCalledWith('domain.user = :userId', { userId: mockUser.id });
+      expect(
+        domainRepository.createQueryBuilder().getMany,
+      ).toHaveBeenCalledWith(/* nothing */);
+      expect(
+        domainRepository.createQueryBuilder().where().getMany,
+      ).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('updateOne', () => {
     it('should update domain fields', async () => {
       const updateDto: any = {
