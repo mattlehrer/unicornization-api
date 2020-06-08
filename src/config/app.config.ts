@@ -22,8 +22,8 @@ export default (): Record<string, unknown> => ({
   },
   frontend: {
     baseUrl: process.env.FRONTEND_BASE_URL,
-    loginSuccess: '/login/success/',
-    loginFailure: '/login/failure/',
+    loginSuccess: process.env.FRONTEND_LOGIN_SUCCESS,
+    loginFailure: process.env.FRONTEND_LOGIN_FAILURE,
   },
   cors: {
     // https://github.com/expressjs/cors#configuration-options
