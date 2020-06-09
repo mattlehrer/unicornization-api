@@ -75,18 +75,22 @@ export class UserService {
 
     const token = await new EmailToken(user as User).save();
     const frontendBaseUrl = this.configService.get('frontend.baseUrl');
+    const resetPasswordRoute = this.configService.get(
+      'frontend.resetPasswordRoute',
+    );
     const msg = {
       to: user.email,
       from,
       subject: `Reset your password on ${domain}`,
-      text: `${frontendBaseUrl}/auth/reset-password/${token.code}`,
-      html: `<a href='${frontendBaseUrl}/auth/reset-password/${token.code}'>Please click to reset your password</a>`,
+      text: `${frontendBaseUrl}${resetPasswordRoute}${token.code}`,
+      html: `<a href='${frontendBaseUrl}${resetPasswordRoute}${token.code}'>Please click to reset your password</a>`,
     };
     await this.handleEmailSend(msg);
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
     const user = await this.verifyEmailToken(resetPasswordDto.code);
+    this.logger.log({ user });
     user.password = resetPasswordDto.newPassword;
     await this.handleSave(user);
     return true;

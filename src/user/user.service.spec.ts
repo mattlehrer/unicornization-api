@@ -72,7 +72,7 @@ const mockToken = {
   user: mockUser,
   code: 'MOCK CODE',
   created_at: new Date(now.setHours(now.getHours() - 1)),
-  save: jest.fn(async () => Promise.resolve(this)),
+  save: jest.fn(async () => Promise.resolve(mockToken)),
   remove: jest.fn(),
   isStillValid: jest.fn(),
 };
@@ -83,8 +83,6 @@ jest.mock('./email-token.entity', () => ({
 
 const mockEmailTokenRepo = () => ({
   findOne: jest.fn(),
-  save: jest.fn().mockReturnValue(mockToken),
-  create: jest.fn().mockReturnValue(mockToken),
 });
 
 describe('UserService', () => {
@@ -187,7 +185,8 @@ describe('UserService', () => {
       configService.get
         .mockReturnValueOnce('email.domain')
         .mockReturnValueOnce('email.from.resetPasswordEmail')
-        .mockReturnValueOnce('frontend.baseUrl');
+        .mockReturnValueOnce('frontend.baseUrl')
+        .mockReturnValueOnce('/frontend.resetPasswordRoute/');
       const forgotPassDto: ForgotPasswordDto = {
         username: mockUser.username,
       };
@@ -201,9 +200,9 @@ describe('UserService', () => {
       expect(emailService.send.mock.calls[0][0]).toMatchInlineSnapshot(`
         Object {
           "from": "email.from.resetPasswordEmail@email.domain",
-          "html": "<a href='frontend.baseUrl/auth/reset-password/undefined'>Please click to reset your password</a>",
+          "html": "<a href='frontend.baseUrl/frontend.resetPasswordRoute/MOCK CODE'>Please click to reset your password</a>",
           "subject": "Reset your password on email.domain",
-          "text": "frontend.baseUrl/auth/reset-password/undefined",
+          "text": "frontend.baseUrl/frontend.resetPasswordRoute/MOCK CODE",
           "to": "F@KE.COM",
         }
       `);
@@ -215,7 +214,8 @@ describe('UserService', () => {
       configService.get
         .mockReturnValueOnce('email.domain')
         .mockReturnValueOnce('email.from.resetPasswordEmail')
-        .mockReturnValueOnce('frontend.baseUrl');
+        .mockReturnValueOnce('frontend.baseUrl')
+        .mockReturnValueOnce('/frontend.resetPasswordRoute/');
       const forgotPassDto: ForgotPasswordDto = {
         email: mockUser.email,
       };
@@ -229,9 +229,9 @@ describe('UserService', () => {
       expect(emailService.send.mock.calls[0][0]).toMatchInlineSnapshot(`
         Object {
           "from": "email.from.resetPasswordEmail@email.domain",
-          "html": "<a href='frontend.baseUrl/auth/reset-password/undefined'>Please click to reset your password</a>",
+          "html": "<a href='frontend.baseUrl/frontend.resetPasswordRoute/MOCK CODE'>Please click to reset your password</a>",
           "subject": "Reset your password on email.domain",
-          "text": "frontend.baseUrl/auth/reset-password/undefined",
+          "text": "frontend.baseUrl/frontend.resetPasswordRoute/MOCK CODE",
           "to": "F@KE.COM",
         }
       `);

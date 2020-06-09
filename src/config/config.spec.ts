@@ -22,6 +22,27 @@ describe('app.config', () => {
   it('app.config() should be json object', () => {
     expect(typeof AppConfig()).toBe('object');
   });
+  describe('frontend.resetPasswordRoute', () => {
+    it('should add trailing /', () => {
+      const mockPath = '/reset';
+      process.env.FRONTEND_RESET_PASSWORD_ROUTE = mockPath;
+      const { frontend } = AppConfig() as any;
+
+      const result = frontend.resetPasswordRoute;
+
+      expect(result).toBe(mockPath + '/');
+    });
+
+    it('should return path as is if it includes a trailing /', () => {
+      const mockPath = '/reset/';
+      process.env.FRONTEND_RESET_PASSWORD_ROUTE = mockPath;
+      const { frontend } = AppConfig() as any;
+
+      const result = frontend.resetPasswordRoute;
+
+      expect(result).toBe(mockPath);
+    });
+  });
   describe('pino.pinoHttp', () => {
     describe('genReqId', () => {
       it('genReqId should call uuid, include existing session id', () => {

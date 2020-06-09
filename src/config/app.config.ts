@@ -24,6 +24,11 @@ export default (): Record<string, unknown> => ({
     baseUrl: process.env.FRONTEND_BASE_URL,
     loginSuccess: process.env.FRONTEND_LOGIN_SUCCESS,
     loginFailure: process.env.FRONTEND_LOGIN_FAILURE,
+    resetPasswordRoute: (() => {
+      let route = process.env.FRONTEND_RESET_PASSWORD_ROUTE;
+      if (route && !route.endsWith('/')) route = route + '/';
+      return route;
+    })(),
   },
   cors: {
     // https://github.com/expressjs/cors#configuration-options

@@ -1,4 +1,7 @@
-import { UnauthorizedException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -217,6 +220,24 @@ describe('AuthService', () => {
       authService.addJwtToCookie(mockReq);
 
       expect(mockReq.session.jwt).toBe(mockToken.accessToken);
+    });
+
+    it('should throw InternalServerErrorException on error', () => {
+      const mockReq: any = {
+        user: mockUser,
+        session: undefined,
+      };
+      const mockToken = { accessToken: 'mock-token' };
+      jwtService.sign.mockReturnValueOnce(mockToken.accessToken);
+      let error;
+
+      try {
+        authService.addJwtToCookie(mockReq);
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(InternalServerErrorException);
     });
   });
 });
