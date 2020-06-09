@@ -557,8 +557,8 @@ describe('UserService', () => {
         .catch((e) => e);
 
       expect(error).toBeInstanceOf(ConflictException);
-      expect(error).toMatchInlineSnapshot(
-        `[Error: Username 'EXISTING' already exists]`,
+      expect(error.response.detail).toMatchInlineSnapshot(
+        `"Username 'EXISTING' already exists"`,
       );
       expect(userRepository.findOne).toHaveBeenCalledWith({ id: mockUser.id });
       expect(userRepository.findOne).toHaveBeenCalledTimes(1);

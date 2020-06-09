@@ -315,7 +315,8 @@ export class UserService {
         .replace('normalized', '')
         .replace('")=(', " '")
         .replace(')', "'");
-      throw new ConflictException(error.detail);
+      this.logger.log({ error });
+      throw new ConflictException(error, error.detail);
     } else {
       this.logger.error({ error });
       throw new InternalServerErrorException();

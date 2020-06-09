@@ -138,6 +138,9 @@ describe('DomainService', () => {
         .catch((e) => e);
 
       expect(error).toBeInstanceOf(ConflictException);
+      expect(error.response.detail).toMatchInlineSnapshot(
+        `"name 'mock.com' already exists"`,
+      );
       expect(mockDomain.save).toHaveBeenCalledWith(/* nothing */);
       expect(mockDomain.save).toHaveBeenCalledTimes(1);
       expect(emitter.emit).not.toHaveBeenCalled();

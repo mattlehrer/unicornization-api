@@ -166,7 +166,7 @@ export class DomainService {
           .replace('Key ("', '')
           .replace('")=(', " '")
           .replace(')', "'");
-        throw new ConflictException(error.detail);
+        throw new ConflictException(error, error.detail);
       } else {
         this.logger.error({ error });
         throw new InternalServerErrorException();
