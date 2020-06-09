@@ -224,10 +224,7 @@ export class UserService {
       .getOne();
   }
 
-  async updateOne(
-    user: Partial<User>,
-    fieldsToUpdate: UpdateUserInput,
-  ): Promise<void> {
+  async updateOne(user: User, fieldsToUpdate: UpdateUserInput): Promise<User> {
     // don't use userRepository.update because
     // @BeforeUpdate listener only runs on save
 
@@ -246,7 +243,7 @@ export class UserService {
       if (typeof fieldsToUpdate[key] === 'undefined') {
         delete fieldsToUpdate[key];
       } else {
-        user[key] = fieldsToUpdate[key];
+        if (!key.endsWith('Password')) user[key] = fieldsToUpdate[key];
       }
     }
 
@@ -258,7 +255,7 @@ export class UserService {
       }
     }
 
-    return;
+    return user;
   }
 
   async deleteOne(user: Partial<User>): Promise<void> {

@@ -516,7 +516,7 @@ describe('UserService', () => {
   });
 
   describe('updateOne', () => {
-    it('should update user fields', async () => {
+    it('should update user fields and return user', async () => {
       const updateDto: any = {
         username: 'NEW_USERNAME',
         email: 'F2@KE.COM',
@@ -534,7 +534,7 @@ describe('UserService', () => {
       expect(userRepository.findOne).toHaveBeenCalledTimes(1);
       expect(mockUser.save).toHaveBeenCalledWith(/* nothing */);
       expect(mockUser.save).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined();
+      expect(result).toEqual(updatedUser);
     });
 
     it('when unique column property is unavailable, should throw ConflictException', async () => {
@@ -586,7 +586,7 @@ describe('UserService', () => {
       expect(mockUser.validatePassword).toHaveBeenCalledTimes(1);
       expect(mockUser.save).toHaveBeenCalledWith(/* nothing */);
       expect(mockUser.save).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined();
+      expect(result).toEqual(updatedUser);
     });
 
     it('when existing password is invalid, should throw UnauthorizedException', async () => {
@@ -643,7 +643,7 @@ describe('UserService', () => {
 
       expect(userRepository.findOne).toHaveBeenCalledWith({ id: mockUser.id });
       expect(userRepository.findOne).toHaveBeenCalledTimes(1);
-      expect(result).toBeUndefined();
+      expect(result).toEqual(mockUser);
       expect(mockUser.save).not.toHaveBeenCalled();
     });
   });
