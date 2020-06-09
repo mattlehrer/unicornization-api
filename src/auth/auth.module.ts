@@ -38,5 +38,6 @@ import { TwitterStrategy } from './strategies/twitter.strategy';
     GithubStrategy,
     TwitterStrategy,
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}
