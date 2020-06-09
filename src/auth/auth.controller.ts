@@ -37,8 +37,14 @@ export class AuthController {
   ) {}
 
   @Post('/signup')
-  signUp(@Body(ValidationPipe) signUpDto: SignUpDto): Promise<User> {
-    return this.authService.signUpWithPassword(signUpDto);
+  async signUp(
+    @Request() req: IUserRequest,
+    @Body(ValidationPipe) signUpDto: SignUpDto,
+  ): Promise<User> {
+    const user = await this.authService.signUpWithPassword(signUpDto);
+    req.user = user;
+    this.authService.addJwtToCookie(req);
+    return user;
   }
 
   @UseGuards(LocalAuthGuard)

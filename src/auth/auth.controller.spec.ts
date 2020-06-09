@@ -38,17 +38,31 @@ describe('Auth Controller', () => {
   });
 
   describe('POST /auth/signup', () => {
-    it('should call authService.signUpWithPassword', async () => {
-      const signUpDto: SignUpDto = {
+    it('should call authService.signUpWithPassword and add jwt to session', async () => {
+      const mockUser = {
+        id: 1,
         username: 'TestUser',
         email: 'test@test.com',
         password: 'TestPassword',
       };
+      authService.signUpWithPassword.mockResolvedValueOnce(mockUser);
+      const mockReq: any = {
+        session: {},
+      };
+      const signUpDto: SignUpDto = {
+        username: mockUser.username,
+        email: mockUser.email,
+        password: mockUser.password,
+      };
 
-      const result = await authController.signUp(signUpDto);
+      const result = await authController.signUp(mockReq, signUpDto);
 
+      expect(authService.addJwtToCookie).toHaveBeenCalledWith({
+        ...mockReq,
+        user: mockUser,
+      });
       expect(authService.signUpWithPassword).toHaveBeenCalledWith(signUpDto);
-      expect(result).toMatchInlineSnapshot(`undefined`);
+      expect(result).toEqual(mockUser);
     });
   });
 
@@ -57,9 +71,6 @@ describe('Auth Controller', () => {
       authService.generateJwtToken.mockReturnValueOnce({
         accessToken: 'mock.jwt',
       });
-      configService.get
-        .mockReturnValueOnce(frontend)
-        .mockReturnValueOnce(success);
       const req: any = {
         user: {
           id: 1,
@@ -67,14 +78,12 @@ describe('Auth Controller', () => {
           email: 'test@test.com',
         },
         session: {},
-        res: { redirect: jest.fn() },
       };
 
       const result = authController.signIn(req);
 
       expect(authService.addJwtToCookie).toHaveBeenCalledWith(req);
       expect(req.session).toMatchInlineSnapshot(`Object {}`);
-      expect(req.res.redirect).not.toHaveBeenCalled();
       expect(result).toBeUndefined();
     });
   });
