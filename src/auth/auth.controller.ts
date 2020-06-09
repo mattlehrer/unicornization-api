@@ -5,7 +5,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  InternalServerErrorException,
   Post,
   Request,
   UseGuards,
@@ -46,7 +45,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('/signin')
   public signIn(@Request() req: IUserRequest): void {
-    this.addJwtToCookie(req);
+    this.authService.addJwtToCookie(req);
     // redirect on frontend
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSExternalRedirectNotAllowed
   }
@@ -86,7 +85,7 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleLoginCallback(@Request() req: IUserRequest): Promise<void> {
-    this.addJwtToCookie(req);
+    this.authService.addJwtToCookie(req);
     req.res.redirect(
       HttpStatus.TEMPORARY_REDIRECT,
       `${this.configService.get('frontend.baseUrl')}${this.configService.get(
@@ -103,7 +102,7 @@ export class AuthController {
   @Get('facebook/callback')
   @UseGuards(FacebookAuthGuard)
   async facebookLoginCallback(@Request() req: IUserRequest): Promise<void> {
-    this.addJwtToCookie(req);
+    this.authService.addJwtToCookie(req);
     req.res.redirect(
       HttpStatus.TEMPORARY_REDIRECT,
       `${this.configService.get('frontend.baseUrl')}${this.configService.get(
@@ -120,7 +119,7 @@ export class AuthController {
   @Get('github/callback')
   @UseGuards(GithubAuthGuard)
   async githubLoginCallback(@Request() req: IUserRequest): Promise<void> {
-    this.addJwtToCookie(req);
+    this.authService.addJwtToCookie(req);
     req.res.redirect(
       HttpStatus.TEMPORARY_REDIRECT,
       `${this.configService.get('frontend.baseUrl')}${this.configService.get(
@@ -137,23 +136,12 @@ export class AuthController {
   @Get('twitter/callback')
   @UseGuards(TwitterAuthGuard)
   async twitterLoginCallback(@Request() req: IUserRequest): Promise<void> {
-    this.addJwtToCookie(req);
+    this.authService.addJwtToCookie(req);
     req.res.redirect(
       HttpStatus.TEMPORARY_REDIRECT,
       `${this.configService.get('frontend.baseUrl')}${this.configService.get(
         'frontend.loginSuccess',
       )}`,
     );
-  }
-
-  private addJwtToCookie(req: IUserRequest) {
-    try {
-      req.session.jwt = this.authService.generateJwtToken(req.user).accessToken;
-    } catch (err) {
-      throw new InternalServerErrorException(
-        err,
-        'Problem with cookie-session middleware?',
-      );
-    }
   }
 }

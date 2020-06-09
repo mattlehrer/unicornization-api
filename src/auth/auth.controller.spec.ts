@@ -1,8 +1,4 @@
-import {
-  HttpStatus,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
@@ -76,44 +72,9 @@ describe('Auth Controller', () => {
 
       const result = authController.signIn(req);
 
-      expect(authService.generateJwtToken).toHaveBeenCalledWith(req.user);
-      expect(req.session).toMatchInlineSnapshot(`
-        Object {
-          "jwt": "mock.jwt",
-        }
-      `);
+      expect(authService.addJwtToCookie).toHaveBeenCalledWith(req);
+      expect(req.session).toMatchInlineSnapshot(`Object {}`);
       expect(req.res.redirect).not.toHaveBeenCalled();
-      expect(result).toBeUndefined();
-    });
-
-    it('should throw InternalServerErrorException if no session', async () => {
-      authService.generateJwtToken.mockReturnValueOnce({
-        accessToken: 'mock.jwt',
-      });
-      configService.get
-        .mockReturnValueOnce(frontend)
-        .mockReturnValueOnce(success);
-      const req: any = {
-        user: {
-          id: 1,
-          username: 'TestUser',
-          email: 'test@test.com',
-        },
-        res: { redirect: jest.fn() },
-      };
-
-      let result;
-      let error;
-      try {
-        result = authController.signIn(req);
-      } catch (err) {
-        error = err;
-      }
-
-      expect(authService.generateJwtToken).toHaveBeenCalledWith(req.user);
-      expect(req.session).toBeUndefined();
-      expect(req.res.redirect).not.toHaveBeenCalled();
-      expect(error).toBeInstanceOf(InternalServerErrorException);
       expect(result).toBeUndefined();
     });
   });
@@ -206,10 +167,8 @@ describe('Auth Controller', () => {
   });
 
   describe('GET /auth/google/callback', () => {
-    it('should call authService.generateJwtToken and return a token', async () => {
-      authService.generateJwtToken.mockReturnValueOnce({
-        accessToken: 'mock.jwt',
-      });
+    it('should call authService.addJwtToCookie and redirect', async () => {
+      // authService.addJwtToCookie.mockReturnValueOnce();
       configService.get
         .mockReturnValueOnce(frontend)
         .mockReturnValueOnce(success);
@@ -226,7 +185,7 @@ describe('Auth Controller', () => {
 
       const result = await authController.googleLoginCallback(req);
 
-      expect(authService.generateJwtToken).toHaveBeenCalledWith(req.user);
+      expect(authService.addJwtToCookie).toHaveBeenCalledWith(req);
       expect(req.res.redirect).toHaveBeenCalledWith(
         HttpStatus.TEMPORARY_REDIRECT,
         `${frontend}${success}`,
@@ -245,10 +204,8 @@ describe('Auth Controller', () => {
   });
 
   describe('GET /auth/facebook/callback', () => {
-    it('should call authService.generateJwtToken and return a token', async () => {
-      authService.generateJwtToken.mockReturnValueOnce({
-        accessToken: 'mock.jwt',
-      });
+    it('should call authService.addJwtToCookie and redirect', async () => {
+      // authService.addJwtToCookie.mockReturnValueOnce();
       configService.get
         .mockReturnValueOnce(frontend)
         .mockReturnValueOnce(success);
@@ -265,7 +222,7 @@ describe('Auth Controller', () => {
 
       const result = await authController.facebookLoginCallback(req);
 
-      expect(authService.generateJwtToken).toHaveBeenCalledWith(req.user);
+      expect(authService.addJwtToCookie).toHaveBeenCalledWith(req);
       expect(req.res.redirect).toHaveBeenCalledWith(
         HttpStatus.TEMPORARY_REDIRECT,
         `${frontend}${success}`,
@@ -284,10 +241,8 @@ describe('Auth Controller', () => {
   });
 
   describe('GET /auth/github/callback', () => {
-    it('should call authService.generateJwtToken and return a token', async () => {
-      authService.generateJwtToken.mockReturnValueOnce({
-        accessToken: 'mock.jwt',
-      });
+    it('should call authService.addJwtToCookie and redirect', async () => {
+      // authService.addJwtToCookie.mockReturnValueOnce();
       configService.get
         .mockReturnValueOnce(frontend)
         .mockReturnValueOnce(success);
@@ -304,7 +259,7 @@ describe('Auth Controller', () => {
 
       const result = await authController.githubLoginCallback(req);
 
-      expect(authService.generateJwtToken).toHaveBeenCalledWith(req.user);
+      expect(authService.addJwtToCookie).toHaveBeenCalledWith(req);
       expect(req.res.redirect).toHaveBeenCalledWith(
         HttpStatus.TEMPORARY_REDIRECT,
         `${frontend}${success}`,
@@ -323,10 +278,8 @@ describe('Auth Controller', () => {
   });
 
   describe('GET /auth/twitter/callback', () => {
-    it('should call authService.generateJwtToken and return a token', async () => {
-      authService.generateJwtToken.mockReturnValueOnce({
-        accessToken: 'mock.jwt',
-      });
+    it('should call authService.addJwtToCookie then redirect', async () => {
+      // authService.addJwtToCookie.mockReturnValueOnce();
       configService.get
         .mockReturnValueOnce(frontend)
         .mockReturnValueOnce(success);
@@ -343,7 +296,7 @@ describe('Auth Controller', () => {
 
       const result = await authController.twitterLoginCallback(req);
 
-      expect(authService.generateJwtToken).toHaveBeenCalledWith(req.user);
+      expect(authService.addJwtToCookie).toHaveBeenCalledWith(req);
       expect(req.res.redirect).toHaveBeenCalledWith(
         HttpStatus.TEMPORARY_REDIRECT,
         `${frontend}${success}`,

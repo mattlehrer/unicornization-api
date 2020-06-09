@@ -1,7 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { isEmail } from 'class-validator';
+import { IUserRequest } from 'src/shared/interfaces/user-request.interface';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -70,5 +75,16 @@ export class AuthService {
     };
     const accessToken = this.jwtService.sign(payload);
     return { accessToken };
+  }
+
+  public addJwtToCookie(req: IUserRequest): void {
+    try {
+      req.session.jwt = this.generateJwtToken(req.user).accessToken;
+    } catch (err) {
+      throw new InternalServerErrorException(
+        err,
+        'Problem with cookie-session middleware?',
+      );
+    }
   }
 }

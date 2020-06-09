@@ -204,4 +204,19 @@ describe('AuthService', () => {
       expect(result).toEqual(mockUser);
     });
   });
+
+  describe('addJwtToCookie', () => {
+    it('should generate Jwt and save to req.session.jwt', () => {
+      const mockReq: any = {
+        user: mockUser,
+        session: {},
+      };
+      const mockToken = { accessToken: 'mock-token' };
+      jwtService.sign.mockReturnValueOnce(mockToken.accessToken);
+
+      authService.addJwtToCookie(mockReq);
+
+      expect(mockReq.session.jwt).toBe(mockToken.accessToken);
+    });
+  });
 });
