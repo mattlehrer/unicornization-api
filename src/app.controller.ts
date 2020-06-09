@@ -13,6 +13,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthService } from './auth/auth.service';
 import { IUserRequest } from './shared/interfaces/user-request.interface';
 import { UpdateUserInput } from './user/dto/update-user.dto';
 import { User } from './user/user.entity';
@@ -21,7 +22,10 @@ import { UserService } from './user/user.service';
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller()
 export class AppController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly authService: AuthService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('/me')
@@ -42,7 +46,10 @@ export class AppController {
     )
     updateUserInput: UpdateUserInput,
   ): Promise<void> {
-    return await this.userService.updateOne(req.user, updateUserInput);
+    const user = await this.userService.updateOne(req.user, updateUserInput);
+    req.user = user;
+    this.authService.addJwtToCookie(req);
+    return;
   }
 
   @UseGuards(JwtAuthGuard)
