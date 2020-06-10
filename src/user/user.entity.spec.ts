@@ -18,16 +18,27 @@ describe('UserEntity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+  describe('validatePassword', () => {
+    it('should call bcrypt.compare', async () => {
+      const user = new User();
+      user.password = mockHash;
 
-  it('validatePassword should call bcrypt.compare', async () => {
-    const user = new User();
-    user.password = mockHash;
+      const result = await user.validatePassword(mockPassword);
 
-    const result = await user.validatePassword(mockPassword);
+      expect(result).toBe(true);
+      expect(bcrypt.compare).toHaveBeenCalledWith(mockPassword, user.password);
+      expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+    });
 
-    expect(result).toBe(true);
-    expect(bcrypt.compare).toHaveBeenCalledWith(mockPassword, user.password);
-    expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+    it('should return false when no password has been set (oauth signup)', async () => {
+      const user = new User();
+      user.password = null;
+
+      const result = await user.validatePassword(mockPassword);
+
+      expect(result).toBe(false);
+      expect(bcrypt.compare).not.toHaveBeenCalled();
+    });
   });
 
   it('normalize should normalize username and password', async () => {
