@@ -273,23 +273,28 @@ export class UserService {
     )}@${this.configService.get('email.domain')}`;
 
     const token = await new EmailToken(user as User).save();
+    const frontendBaseUrl = this.configService.get('frontend.baseUrl');
+    const verifyEmailRoute = this.configService.get(
+      'frontend.verifyEmailRoute',
+    );
     const msg = {
       to: user.email,
       from,
       subject: 'Welcome! Please verify your email address',
-      text: `http://localhost:3000/verify-email/${token.code}`,
-      html: `<a href='http://localhost:3000/verify-email/${token.code}'>Please click to verify your email</a>`,
+      text: `${frontendBaseUrl}${verifyEmailRoute}${token.code}`,
+      html: `<a href='${frontendBaseUrl}${verifyEmailRoute}${token.code}'>Please click to verify your email</a>`,
     };
     await this.handleEmailSend(msg);
   }
 
   async verifyEmailToken(code: string): Promise<User> {
+    this.logger.debug(code);
     const token = await this.emailTokenRepository.findOne({ code });
     if (token && token.user) {
       if (token.isStillValid()) {
         const user = token.user;
         if (!user.hasVerifiedEmail) user.hasVerifiedEmail = true;
-        Promise.all([await token.remove(), await user.save()]);
+        Promise.all([await token.remove(), await this.handleSave(user)]);
         return user;
       } else {
         await token.remove();

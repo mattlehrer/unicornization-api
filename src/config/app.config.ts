@@ -24,11 +24,12 @@ export default (): Record<string, unknown> => ({
     baseUrl: process.env.FRONTEND_BASE_URL,
     loginSuccess: process.env.FRONTEND_LOGIN_SUCCESS,
     loginFailure: process.env.FRONTEND_LOGIN_FAILURE,
-    resetPasswordRoute: (() => {
-      let route = process.env.FRONTEND_RESET_PASSWORD_ROUTE;
-      if (route && !route.endsWith('/')) route = route + '/';
-      return route;
-    })(),
+    resetPasswordRoute: ensureRouteEndsInSlash(
+      process.env.FRONTEND_RESET_PASSWORD_ROUTE,
+    ),
+    verifyEmailRoute: ensureRouteEndsInSlash(
+      process.env.FRONTEND_VERIFY_EMAIL_ROUTE,
+    ),
   },
   cors: {
     // https://github.com/expressjs/cors#configuration-options
@@ -109,6 +110,11 @@ export default (): Record<string, unknown> => ({
     shouldSendInDev: false, // set to true to send emails when NODE_ENV is !== production
   },
 });
+
+function ensureRouteEndsInSlash(route: string) {
+  if (route && !route.endsWith('/')) route = route + '/';
+  return route;
+}
 
 export function addContextRequest(): Record<string, string> {
   return { context: 'Request' };
