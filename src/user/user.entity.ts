@@ -76,15 +76,19 @@ export class User extends BaseEntity {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @Expose()
   @Column({ nullable: true })
   google?: string;
 
+  @Expose()
   @Column({ nullable: true })
   facebook?: string;
 
+  @Expose()
   @Column({ nullable: true })
   github?: string;
 
+  @Expose()
   @Column({ nullable: true })
   twitter?: string;
 
