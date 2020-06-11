@@ -670,6 +670,23 @@ describe('UserService', () => {
     });
   });
 
+  describe('resendEmailVerification', () => {
+    it('should find user by email and send email', async () => {
+      userRepository.findOne.mockResolvedValueOnce(mockUser);
+
+      const result = await userService.resendEmailVerification({
+        email: mockUser.email,
+      });
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        normalizedEmail: normalizeEmail(mockUser.email),
+      });
+      expect(userRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(emailService.send).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('sendEmailVerification', () => {
     it('should throw InternalServerErrorException on error', async () => {
       emailService.send.mockRejectedValueOnce(new Error('mock mail error'));

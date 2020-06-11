@@ -82,4 +82,18 @@ describe('App Controller', () => {
     expect(userService.verifyEmailToken).toHaveBeenCalledTimes(1);
     expect(response).toEqual(true);
   });
+
+  it('GET /resend-verify-email should call userService.verifyEmail with code param', async () => {
+    const mockEmail = 'mock@test.com';
+
+    const response = await appController.resendVerifyEmail({
+      email: mockEmail,
+    });
+
+    expect(userService.resendEmailVerification).toHaveBeenCalledWith({
+      email: mockEmail,
+    });
+    expect(userService.resendEmailVerification).toHaveBeenCalledTimes(1);
+    expect(response).toBeUndefined();
+  });
 });

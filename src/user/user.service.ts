@@ -22,6 +22,7 @@ import { PostgresErrorCode } from 'src/shared/interfaces/postgres.enum';
 import { Repository, UpdateResult } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import normalizeEmail from 'validator/lib/normalizeEmail';
+import { ResendVerifyEmailDto } from './dto/resend-verify-email.dto';
 import { UpdateUserInput } from './dto/update-user.dto';
 import { EmailToken } from './email-token.entity';
 import { User } from './user.entity';
@@ -267,6 +268,13 @@ export class UserService {
     return this.handleDbUpdateResult(result);
   }
 
+  async resendEmailVerification(
+    resendVerifyEmailDto: ResendVerifyEmailDto,
+  ): Promise<void> {
+    const user = await this.findOneByEmail(resendVerifyEmailDto.email);
+    await this.sendEmailVerification(user);
+  }
+
   async sendEmailVerification(user: Partial<User>): Promise<void> {
     const from = `${this.configService.get(
       'email.from.verifyEmail',
@@ -288,7 +296,6 @@ export class UserService {
   }
 
   async verifyEmailToken(code: string): Promise<User> {
-    this.logger.debug(code);
     const token = await this.emailTokenRepository.findOne({ code });
     if (token && token.user) {
       if (token.isStillValid()) {

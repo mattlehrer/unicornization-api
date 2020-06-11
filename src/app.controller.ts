@@ -7,6 +7,7 @@ import {
   HttpCode,
   Param,
   Patch,
+  Post,
   Request,
   UseGuards,
   UseInterceptors,
@@ -15,6 +16,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthService } from './auth/auth.service';
 import { IUserRequest } from './shared/interfaces/user-request.interface';
+import { ResendVerifyEmailDto } from './user/dto/resend-verify-email.dto';
 import { UpdateUserInput } from './user/dto/update-user.dto';
 import { User } from './user/user.entity';
 import { UserService } from './user/user.service';
@@ -61,5 +63,12 @@ export class AppController {
   @Get('/verify-email/:code')
   async getVerifyEmail(@Param('code') code: string): Promise<boolean> {
     return !!(await this.userService.verifyEmailToken(code));
+  }
+
+  @Post('/resend-verify-email/')
+  async resendVerifyEmail(
+    @Body(ValidationPipe) resendVerifyEmailDto: ResendVerifyEmailDto,
+  ): Promise<void> {
+    return await this.userService.resendEmailVerification(resendVerifyEmailDto);
   }
 }
