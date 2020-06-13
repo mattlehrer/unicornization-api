@@ -34,7 +34,9 @@ export default (): Record<string, unknown> => ({
   cors: {
     // https://github.com/expressjs/cors#configuration-options
     credentials: true,
-    origin: process.env.FRONTEND_BASE_URL,
+    // TODO: enable CORS only for added domains with async options:
+    // https://github.com/expressjs/cors#configuring-cors-asynchronously
+    origin: true,
   },
   jwt: {
     expiresIn: process.env.EXPIRES_IN,
@@ -95,7 +97,10 @@ export default (): Record<string, unknown> => ({
     consumerSecret: process.env.TWITTER_CONSUMER_SECRET,
     callbackUrl: process.env.TWITTER_CALLBACK_URL,
   },
-  helmet: {}, // for custom config
+  helmet: {
+    // https://helmetjs.github.io/docs/
+    frameguard: false,
+  },
   rateLimit: {
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 100, // limit each IP to 100 requests per windowMs
