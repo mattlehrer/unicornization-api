@@ -13,6 +13,10 @@ jest.mock('typeorm', () => ({
   UpdateDateColumn: jest.fn(),
   Entity: jest.fn(),
   ManyToOne: jest.fn((cb) => cb()),
+  OneToMany: jest.fn((cb1, cb2) => {
+    cb1();
+    cb2(jest.fn);
+  }),
   PrimaryGeneratedColumn: jest.fn(),
 }));
 

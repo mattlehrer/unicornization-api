@@ -37,8 +37,7 @@ export class Vote extends BaseEntity {
   @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true })
   user: User;
 
-  @Expose()
-  @ManyToOne(() => Idea, { onDelete: 'CASCADE', eager: true })
+  @ManyToOne(() => Idea, (idea) => idea.votes, { onDelete: 'CASCADE' })
   idea: Idea;
 
   @CreateDateColumn()

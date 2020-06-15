@@ -2,6 +2,7 @@ import { Idea } from './idea.entity';
 
 jest.mock('src/user/user.entity');
 jest.mock('src/domain/domain.entity');
+jest.mock('src/vote/vote.entity');
 jest.mock('typeorm', () => ({
   BaseEntity: jest.fn(),
   BeforeInsert: jest.fn(),
@@ -11,7 +12,11 @@ jest.mock('typeorm', () => ({
   DeleteDateColumn: jest.fn(),
   UpdateDateColumn: jest.fn(),
   Entity: jest.fn(),
-  ManyToOne: jest.fn((cb) => cb()),
+  ManyToOne: jest.fn((cb1, cb2) => {
+    cb1();
+    typeof cb2 === 'function' ? cb2(jest.fn) : undefined;
+  }),
+  OneToMany: jest.fn((cb) => cb()),
   PrimaryGeneratedColumn: jest.fn(),
 }));
 

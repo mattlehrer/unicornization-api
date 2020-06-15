@@ -1,6 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 import { Domain } from 'src/domain/domain.entity';
 import { User } from 'src/user/user.entity';
+import { Vote } from 'src/vote/vote.entity';
 import {
   BaseEntity,
   Column,
@@ -8,6 +9,7 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -48,6 +50,10 @@ export class Idea extends BaseEntity {
   @Expose()
   @ManyToOne(() => Domain, { onDelete: 'CASCADE', eager: true })
   domain: Domain;
+
+  @Expose()
+  @OneToMany(() => Vote, (vote) => vote.idea)
+  votes: Vote[];
 
   @CreateDateColumn()
   created_at: Date;
