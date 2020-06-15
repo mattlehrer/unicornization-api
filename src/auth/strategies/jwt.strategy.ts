@@ -22,9 +22,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<Partial<User>> {
+  async validate(payload: JwtPayload): Promise<User> {
     // TODO: implement JWT blacklist
-
     const { sub } = payload;
 
     return await this.userService.findOneById(sub);
