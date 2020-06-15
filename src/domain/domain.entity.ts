@@ -34,7 +34,6 @@ export class Domain extends BaseEntity {
   })
   name: FQDN;
 
-  @Expose()
   @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true })
   user: User;
 
