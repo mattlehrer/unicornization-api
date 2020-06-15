@@ -8,6 +8,8 @@ import { InjectEventEmitter } from 'nest-emitter';
 import { DomainService } from 'src/domain/domain.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
+import { VoteType } from 'src/vote/vote-types.enum';
+import { VoteService } from 'src/vote/vote.service';
 import { Repository, UpdateResult } from 'typeorm';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
@@ -22,6 +24,7 @@ export class IdeaService {
     @InjectEventEmitter() private readonly emitter: IdeaEventEmitter,
     private readonly logger: LoggerService,
     private readonly domainService: DomainService,
+    private readonly voteService: VoteService,
   ) {
     this.logger.setContext(IdeaService.name);
   }
@@ -35,6 +38,12 @@ export class IdeaService {
     });
 
     await this.handleSave(idea);
+
+    await this.voteService.create({
+      type: VoteType.UP,
+      idea,
+      user: idea.user,
+    });
 
     this.emitter.emit('newIdea', idea);
 
@@ -68,6 +77,7 @@ export class IdeaService {
     return await this.ideaRepository
       .createQueryBuilder('idea')
       .where('idea.domain = :domainId', { domainId })
+      .leftJoinAndSelect('idea.votes', 'vote')
       .getMany();
   }
 

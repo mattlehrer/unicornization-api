@@ -9,6 +9,7 @@ import { EVENT_EMITTER_TOKEN } from 'nest-emitter';
 import { DomainService } from 'src/domain/domain.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
+import { VoteService } from 'src/vote/vote.service';
 import { Repository } from 'typeorm';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
@@ -17,6 +18,7 @@ import { IdeaService } from './idea.service';
 
 jest.mock('src/logger/logger.service');
 jest.mock('src/domain/domain.service');
+jest.mock('src/vote/vote.service');
 
 const mockUser = {
   id: 1,
@@ -51,6 +53,7 @@ const mockIdeaRepository = () => ({
     select: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
     withDeleted: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
     getOne: jest.fn(),
@@ -77,6 +80,7 @@ describe('IdeaService', () => {
         { provide: EVENT_EMITTER_TOKEN, useValue: EventEmitter },
         LoggerService,
         DomainService,
+        VoteService,
       ],
     }).compile();
 
