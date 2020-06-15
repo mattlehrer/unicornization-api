@@ -6,6 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EventEmitter } from 'events';
 import { EVENT_EMITTER_TOKEN } from 'nest-emitter';
+import { DomainService } from 'src/domain/domain.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
@@ -15,6 +16,7 @@ import { Idea } from './idea.entity';
 import { IdeaService } from './idea.service';
 
 jest.mock('src/logger/logger.service');
+jest.mock('src/domain/domain.service');
 
 const mockUser = {
   id: 1,
@@ -60,6 +62,7 @@ describe('IdeaService', () => {
   let ideaService: IdeaService;
   let ideaRepository;
   let emitter;
+  let domainService;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -73,12 +76,14 @@ describe('IdeaService', () => {
         },
         { provide: EVENT_EMITTER_TOKEN, useValue: EventEmitter },
         LoggerService,
+        DomainService,
       ],
     }).compile();
 
     ideaService = module.get<IdeaService>(IdeaService);
     ideaRepository = module.get<Repository<Idea>>(getRepositoryToken(Idea));
     emitter = module.get<EventEmitter>(EVENT_EMITTER_TOKEN);
+    domainService = module.get<DomainService>(DomainService);
   });
 
   it('should be defined', () => {
@@ -88,10 +93,11 @@ describe('IdeaService', () => {
   describe('create', () => {
     it('should return idea and emit newIdea event', async () => {
       emitter.emit = jest.fn();
+      domainService.findOneById.mockResolvedValueOnce(mockDomain);
       const mockCreateDto: CreateIdeaDto = {
         headline: mockIdea.headline,
         description: mockIdea.description,
-        domain: mockDomain,
+        domainId: mockDomain.id,
       };
 
       const result = await ideaService.create({
@@ -100,6 +106,8 @@ describe('IdeaService', () => {
       });
 
       expect(result).toEqual(mockIdea);
+      expect(domainService.findOneById).toHaveBeenCalledWith(mockDomain.id);
+      expect(domainService.findOneById).toHaveBeenCalledTimes(1);
       expect(mockIdea.save).toHaveBeenCalledWith(/* nothing */);
       expect(mockIdea.save).toHaveBeenCalledTimes(1);
 
@@ -109,18 +117,21 @@ describe('IdeaService', () => {
 
     it('should throw InternalServerErrorException on db error', async () => {
       mockIdea.save.mockRejectedValueOnce(new Error('Test'));
+      domainService.findOneById.mockResolvedValueOnce(mockDomain);
       emitter.emit = jest.fn();
 
       const error = await ideaService
         .create({
           user: mockUser as User,
-          domain: mockDomain,
+          domainId: mockDomain.id,
           headline: mockIdea.headline,
           description: mockIdea.description,
         })
         .catch((e) => e);
 
       expect(error).toBeInstanceOf(InternalServerErrorException);
+      expect(domainService.findOneById).toHaveBeenCalledWith(mockDomain.id);
+      expect(domainService.findOneById).toHaveBeenCalledTimes(1);
       expect(mockIdea.save).toHaveBeenCalledWith(/* nothing */);
       expect(mockIdea.save).toHaveBeenCalledTimes(1);
       expect(emitter.emit).not.toHaveBeenCalled();

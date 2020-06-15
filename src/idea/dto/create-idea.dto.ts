@@ -1,5 +1,4 @@
-import { IsInstance, IsOptional, IsString } from 'class-validator';
-import { Domain } from 'src/domain/domain.entity';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateIdeaDto {
   @IsString()
@@ -9,6 +8,6 @@ export class CreateIdeaDto {
   @IsString()
   description?: string;
 
-  @IsInstance(Domain)
-  domain: Domain;
+  @IsInt()
+  domainId: number;
 }

@@ -5,9 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectEventEmitter } from 'nest-emitter';
+import { DomainService } from 'src/domain/domain.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
 import { Repository, UpdateResult } from 'typeorm';
+import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { Idea } from './idea.entity';
 import { IdeaEventEmitter } from './idea.events';
@@ -19,12 +21,18 @@ export class IdeaService {
     private readonly ideaRepository: Repository<Idea>,
     @InjectEventEmitter() private readonly emitter: IdeaEventEmitter,
     private readonly logger: LoggerService,
+    private readonly domainService: DomainService,
   ) {
     this.logger.setContext(IdeaService.name);
   }
 
-  async create(details: Partial<Idea>): Promise<Idea> {
-    const idea = this.ideaRepository.create(details);
+  async create(details: CreateIdeaDto & Partial<Idea>): Promise<Idea> {
+    const domain = await this.domainService.findOneById(details.domainId);
+    delete details.domainId;
+    const idea = this.ideaRepository.create({
+      ...details,
+      domain,
+    });
 
     await this.handleSave(idea);
 

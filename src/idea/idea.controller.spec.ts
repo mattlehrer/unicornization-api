@@ -1,6 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Domain } from 'src/domain/domain.entity';
 import { IUserRequest } from 'src/shared/interfaces/user-request.interface';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
@@ -15,7 +14,7 @@ const mockUser = {
 const mockDomain = { id: 1, name: 'mock.com' };
 const createIdeaDto: CreateIdeaDto = {
   headline: 'uber for mocks',
-  domain: mockDomain as Domain,
+  domainId: mockDomain.id,
 };
 const mockIdea = {
   id: 100,
