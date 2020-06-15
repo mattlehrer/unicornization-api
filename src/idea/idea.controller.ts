@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -11,6 +12,7 @@ import {
   Post,
   Request,
   UseGuards,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -20,6 +22,7 @@ import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { Idea } from './idea.entity';
 import { IdeaService } from './idea.service';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('idea')
 export class IdeaController {
   constructor(private readonly ideaService: IdeaService) {}

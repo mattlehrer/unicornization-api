@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -11,6 +12,7 @@ import {
   Post,
   Request,
   UseGuards,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -20,6 +22,7 @@ import { UpdateVoteDto } from './dto/update-vote.dto';
 import { Vote } from './vote.entity';
 import { VoteService } from './vote.service';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('vote')
 export class VoteController {
   constructor(private readonly voteService: VoteService) {}
