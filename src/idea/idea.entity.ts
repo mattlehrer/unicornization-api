@@ -60,5 +60,3 @@ export class Idea extends BaseEntity {
   @DeleteDateColumn()
   deleted_at: Date;
 }
-
-export type FQDN = string;

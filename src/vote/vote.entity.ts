@@ -34,9 +34,10 @@ export class Vote extends BaseEntity {
   type: VoteType;
 
   @Expose()
-  @ManyToOne(() => User, { onDelete: 'CASCADE', eager: true })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
+  @Expose()
   @ManyToOne(() => Idea, (idea) => idea.votes, { onDelete: 'CASCADE' })
   idea: Idea;
 
@@ -49,5 +50,3 @@ export class Vote extends BaseEntity {
   @DeleteDateColumn()
   deleted_at: Date;
 }
-
-export type FQDN = string;
