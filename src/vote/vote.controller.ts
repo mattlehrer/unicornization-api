@@ -46,13 +46,30 @@ export class VoteController {
     throw new NotFoundException();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/user/:id')
-  async getAllVotesOfAUser(@Param('id') userId: number): Promise<Vote[]> {
+  async getAllVotesOfAUser(
+    @Param('id', ParseIntPipe) userId: number,
+  ): Promise<Vote[]> {
     return await this.voteService.findAllVotesOfAUser(userId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/domain/:domainId')
+  async getAllVotesOfAUserForADomain(
+    @Request() req: IUserRequest,
+    @Param('domainId', ParseIntPipe) domainId: number,
+  ): Promise<Vote[]> {
+    return await this.voteService.findAllVotesOfAUserForADomain({
+      user: req.user,
+      domainId,
+    });
+  }
+
   @Get('/idea/:id')
-  async getAllVotesOfAnIdea(@Param('id') ideaId: number): Promise<Vote[]> {
+  async getAllVotesOfAnIdea(
+    @Param('id', ParseIntPipe) ideaId: number,
+  ): Promise<Vote[]> {
     return await this.voteService.findAllVotesOfAnIdea(ideaId);
   }
 

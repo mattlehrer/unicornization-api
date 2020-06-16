@@ -78,6 +78,22 @@ export class VoteService {
       .getMany();
   }
 
+  async findAllVotesOfAUserForADomain({
+    user,
+    domainId,
+  }: {
+    user: User;
+    domainId: number;
+  }): Promise<Vote[]> {
+    return await this.voteRepository
+      .createQueryBuilder('vote')
+      .where('vote.user = :user', { user: user.id })
+      .innerJoinAndSelect('vote.idea', 'idea', 'idea.domain = :domainId', {
+        domainId,
+      })
+      .getMany();
+  }
+
   async updateOne({
     user,
     id,
