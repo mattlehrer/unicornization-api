@@ -30,10 +30,6 @@ export class Idea extends BaseEntity {
   @Column({ type: 'varchar', length: 100 })
   headline: string;
 
-  @Expose()
-  @Column({ nullable: true })
-  description?: string;
-
   /*
 
   TODO: 

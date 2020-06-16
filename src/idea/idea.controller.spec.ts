@@ -132,7 +132,7 @@ describe('Idea Controller', () => {
   describe('PATCH /idea/:id', () => {
     it('should call ideaService.updateOne and return void', async () => {
       const updateDto: UpdateIdeaDto = {
-        description: 'better description',
+        headline: 'better headline',
       };
       mockReq.params = {
         id: 100,

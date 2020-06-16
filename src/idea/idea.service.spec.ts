@@ -33,7 +33,6 @@ const mockDomain: any = {
 const mockIdea = {
   id: 101,
   headline: 'Mock idea',
-  description: 'Mock description',
   user: mockUser,
   domain: mockDomain,
   save: jest.fn(),
@@ -100,7 +99,6 @@ describe('IdeaService', () => {
       domainService.findOneById.mockResolvedValueOnce(mockDomain);
       const mockCreateDto: CreateIdeaDto = {
         headline: mockIdea.headline,
-        description: mockIdea.description,
         domainId: mockDomain.id,
       };
 
@@ -129,7 +127,6 @@ describe('IdeaService', () => {
           user: mockUser as User,
           domainId: mockDomain.id,
           headline: mockIdea.headline,
-          description: mockIdea.description,
         })
         .catch((e) => e);
 
@@ -280,7 +277,7 @@ describe('IdeaService', () => {
   describe('updateOne', () => {
     it('should update idea fields', async () => {
       const updateDto: any = {
-        description: 'great idea',
+        headline: 'great idea',
       };
       const updatedIdea = {
         ...mockIdea,
@@ -306,7 +303,7 @@ describe('IdeaService', () => {
 
     it('when db throws unknown error, should throw InternalServerErrorException', async () => {
       const updateDto: UpdateIdeaDto = {
-        description: 'good idea',
+        headline: 'good idea',
       };
       ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
       mockIdea.save.mockRejectedValueOnce(new Error('db error'));
@@ -331,7 +328,7 @@ describe('IdeaService', () => {
 
     it('when user does not own idea, should throw UnauthorizedException', async () => {
       const updateDto: any = {
-        description: 'this is the best mock idea',
+        headline: 'this is the best mock idea',
       };
       const mockUnownedIdea = {
         ...mockIdea,
@@ -361,7 +358,7 @@ describe('IdeaService', () => {
 
     it('when updateDto has no updates, return idea unchanged', async () => {
       const updateDto: any = {
-        description: undefined,
+        headline: undefined,
       };
       ideaRepository.findOne.mockResolvedValueOnce(mockIdea);
 
