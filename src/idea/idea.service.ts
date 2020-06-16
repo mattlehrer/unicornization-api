@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
@@ -24,6 +26,7 @@ export class IdeaService {
     @InjectEventEmitter() private readonly emitter: IdeaEventEmitter,
     private readonly logger: LoggerService,
     private readonly domainService: DomainService,
+    @Inject(forwardRef(() => VoteService))
     private readonly voteService: VoteService,
   ) {
     this.logger.setContext(IdeaService.name);
@@ -41,7 +44,7 @@ export class IdeaService {
 
     await this.voteService.create({
       type: VoteType.UP,
-      idea,
+      ideaId: idea.id,
       user: idea.user,
     });
 

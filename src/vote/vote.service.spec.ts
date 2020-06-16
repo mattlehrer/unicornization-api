@@ -6,6 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EventEmitter } from 'events';
 import { EVENT_EMITTER_TOKEN } from 'nest-emitter';
+import { IdeaService } from 'src/idea/idea.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
 import { Repository } from 'typeorm';
@@ -16,6 +17,7 @@ import { Vote } from './vote.entity';
 import { VoteService } from './vote.service';
 
 jest.mock('src/logger/logger.service');
+jest.mock('src/idea/idea.service');
 
 const mockUser = {
   id: 1,
@@ -82,6 +84,7 @@ describe('VoteService', () => {
         },
         { provide: EVENT_EMITTER_TOKEN, useValue: EventEmitter },
         LoggerService,
+        IdeaService,
       ],
     }).compile();
 
@@ -99,7 +102,7 @@ describe('VoteService', () => {
       emitter.emit = jest.fn();
       const mockCreateDto: CreateVoteDto = {
         type: mockVote.type,
-        idea: mockVote.idea,
+        ideaId: mockVote.idea.id,
       };
 
       const result = await voteService.create({
@@ -123,7 +126,7 @@ describe('VoteService', () => {
         .create({
           user: mockUser as User,
           type: mockVote.type,
-          idea: mockVote.idea,
+          ideaId: mockVote.idea.id,
         })
         .catch((e) => e);
 
@@ -297,7 +300,7 @@ describe('VoteService', () => {
     it('when db throws unknown error, should throw InternalServerErrorException', async () => {
       const updateDto: UpdateVoteDto = {
         type: VoteType.DOWN,
-        idea: mockVote.idea,
+        ideaId: mockVote.idea.id,
       };
       voteRepository.findOne.mockResolvedValueOnce(mockVote);
       mockVote.save.mockRejectedValueOnce(new Error('db error'));
@@ -323,7 +326,7 @@ describe('VoteService', () => {
     it('when user does not own vote, should throw UnauthorizedException', async () => {
       const updateDto: any = {
         type: VoteType.DOWN,
-        idea: mockVote.idea,
+        ideaId: mockVote.idea.id,
       };
       const mockUnownedVote = {
         ...mockVote,

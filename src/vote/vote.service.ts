@@ -1,13 +1,17 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectEventEmitter } from 'nest-emitter';
+import { IdeaService } from 'src/idea/idea.service';
 import { LoggerService } from 'src/logger/logger.service';
 import { User } from 'src/user/user.entity';
 import { Repository, UpdateResult } from 'typeorm';
+import { CreateVoteDto } from './dto/create-vote.dto';
 import { UpdateVoteDto } from './dto/update-vote.dto';
 import { Vote } from './vote.entity';
 import { VoteEventEmitter } from './vote.events';
@@ -19,12 +23,16 @@ export class VoteService {
     private readonly voteRepository: Repository<Vote>,
     @InjectEventEmitter() private readonly emitter: VoteEventEmitter,
     private readonly logger: LoggerService,
+    @Inject(forwardRef(() => IdeaService))
+    private readonly ideaService: IdeaService,
   ) {
     this.logger.setContext(VoteService.name);
   }
 
-  async create(details: Partial<Vote>): Promise<Vote> {
-    const vote = this.voteRepository.create(details);
+  async create(details: CreateVoteDto & Partial<Vote>): Promise<Vote> {
+    const idea = await this.ideaService.findOneById(details.ideaId);
+    delete details.ideaId;
+    const vote = this.voteRepository.create({ ...details, idea });
 
     await this.handleSave(vote);
 

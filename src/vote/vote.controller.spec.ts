@@ -1,6 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Idea } from 'src/idea/idea.entity';
 import { IUserRequest } from 'src/shared/interfaces/user-request.interface';
 import { CreateVoteDto } from './dto/create-vote.dto';
 import { UpdateVoteDto } from './dto/update-vote.dto';
@@ -29,7 +28,7 @@ const mockIdea: any = {
 };
 const createVoteDto: CreateVoteDto = {
   type: VoteType.UP,
-  idea: mockIdea as Idea,
+  ideaId: mockIdea.id,
 };
 const mockVote: any = {
   id: 1001,
@@ -149,7 +148,7 @@ describe('Vote Controller', () => {
     it('should call voteService.updateOne and return void', async () => {
       const updateDto: UpdateVoteDto = {
         type: VoteType.DOWN,
-        idea: mockIdea,
+        ideaId: mockIdea.id,
       };
       mockReq.params = {
         id: 100,
