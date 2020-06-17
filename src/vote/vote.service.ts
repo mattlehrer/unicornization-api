@@ -13,6 +13,7 @@ import { User } from 'src/user/user.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { CreateVoteDto } from './dto/create-vote.dto';
 import { UpdateVoteDto } from './dto/update-vote.dto';
+import { VoteType } from './vote-types.enum';
 import { Vote } from './vote.entity';
 import { VoteEventEmitter } from './vote.events';
 
@@ -32,6 +33,20 @@ export class VoteService {
   async create(details: CreateVoteDto & Partial<Vote>): Promise<Vote> {
     const idea = await this.ideaService.findOneById(details.ideaId);
     delete details.ideaId;
+
+    const existingVote = await this.voteRepository.findOne({
+      user: details.user,
+      idea,
+    });
+    if (existingVote) {
+      if (existingVote.type === details.type) {
+        existingVote.type = VoteType.REMOVED;
+      } else {
+        existingVote.type = details.type;
+      }
+      await this.handleSave(existingVote);
+      return existingVote;
+    }
     const vote = this.voteRepository.create({ ...details, idea });
 
     await this.handleSave(vote);
