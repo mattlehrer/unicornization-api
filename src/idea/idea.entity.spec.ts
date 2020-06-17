@@ -8,6 +8,7 @@ jest.mock('typeorm', () => ({
   BeforeInsert: jest.fn(),
   BeforeUpdate: jest.fn(),
   Column: jest.fn(),
+  Unique: jest.fn(),
   CreateDateColumn: jest.fn(),
   DeleteDateColumn: jest.fn(),
   UpdateDateColumn: jest.fn(),

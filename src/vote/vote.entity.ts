@@ -9,11 +9,13 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 import { VoteType } from './vote-types.enum';
 
 @Exclude()
+@Unique(['user', 'idea'])
 @Entity()
 export class Vote extends BaseEntity {
   constructor(args: any = {}) {
