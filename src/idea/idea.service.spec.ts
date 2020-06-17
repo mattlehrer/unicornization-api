@@ -35,6 +35,7 @@ const mockIdea = {
   headline: 'Mock idea',
   user: mockUser,
   domain: mockDomain,
+  votes: [],
   save: jest.fn(),
 };
 const mockDeletedIdea = {

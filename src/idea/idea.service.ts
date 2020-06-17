@@ -77,11 +77,17 @@ export class IdeaService {
   }
 
   async findAllIdeasForADomain(domainId: number): Promise<Idea[]> {
-    return await this.ideaRepository
+    const ideas = await this.ideaRepository
       .createQueryBuilder('idea')
       .where('idea.domain = :domainId', { domainId })
       .leftJoinAndSelect('idea.votes', 'vote')
       .getMany();
+
+    return ideas.sort(
+      (a, b) =>
+        b.votes.reduce((sum, curr) => sum + curr.type, 0) -
+        a.votes.reduce((sum, curr) => sum + curr.type, 0),
+    );
   }
 
   async findAllIdeasOfAUser(userId: number): Promise<Idea[]> {
