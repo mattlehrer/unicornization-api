@@ -1,5 +1,5 @@
 export enum VoteType {
-  UP = 'UP',
-  DOWN = 'DOWN',
-  NULL = 'NULL',
+  UP = 1,
+  DOWN = -1,
+  REMOVED = 0,
 }
