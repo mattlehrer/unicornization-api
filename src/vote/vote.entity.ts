@@ -29,9 +29,7 @@ export class Vote extends BaseEntity {
 
   @Expose()
   @Column({
-    type: 'enum',
-    enum: VoteType,
-    enumName: 'VoteType',
+    type: 'int',
   })
   type: VoteType;
 
