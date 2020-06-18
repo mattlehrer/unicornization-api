@@ -76,18 +76,29 @@ export class IdeaService {
     return await this.ideaRepository.findOne({ id });
   }
 
-  async findAllIdeasForADomain(domainId: number): Promise<Idea[]> {
-    const ideas = await this.ideaRepository
-      .createQueryBuilder('idea')
-      .where('idea.domain = :domainId', { domainId })
-      .leftJoinAndSelect('idea.votes', 'vote')
-      .getMany();
-
-    return ideas.sort(
-      (a, b) =>
-        b.votes.reduce((sum, curr) => sum + curr.type, 0) -
-        a.votes.reduce((sum, curr) => sum + curr.type, 0),
-    );
+  async findAllIdeasForADomain(
+    domainId: number,
+    limit = 10,
+    offset = 0,
+  ): Promise<Idea[]> {
+    let ideas: Idea[];
+    try {
+      ideas = await this.ideaRepository.query(
+        `SELECT idea.*, SUM(vote.type) as score 
+          FROM idea
+          LEFT JOIN vote ON idea.id = vote."ideaId"
+          WHERE idea."domainId" = $1
+          GROUP BY idea.id
+          ORDER BY score DESC
+          LIMIT $2
+          OFFSET $3;`,
+        [domainId, limit, offset],
+      );
+    } catch (err) {
+      this.logger.error({ err });
+      throw new InternalServerErrorException();
+    }
+    return ideas;
   }
 
   async findAllIdeasOfAUser(userId: number): Promise<Idea[]> {
