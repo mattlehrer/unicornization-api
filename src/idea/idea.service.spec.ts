@@ -49,6 +49,7 @@ const mockIdeaRepository = () => ({
   save: jest.fn().mockReturnValue(mockIdea),
   create: jest.fn().mockReturnValue(mockIdea),
   softDelete: jest.fn(),
+  query: jest.fn(),
   createQueryBuilder: jest.fn().mockReturnValue({
     select: jest.fn().mockReturnThis(),
     from: jest.fn().mockReturnThis(),
@@ -225,27 +226,22 @@ describe('IdeaService', () => {
       const mockIdea2: any = {};
       Object.assign(mockIdea2, mockIdea);
       mockIdea2.id = 22;
-      ideaRepository
-        .createQueryBuilder()
-        .where()
-        .getMany.mockResolvedValueOnce([mockIdea, mockIdea2]);
+      ideaRepository.query.mockResolvedValueOnce([mockIdea, mockIdea2]);
 
       const result = await ideaService.findAllIdeasForADomain(mockDomain.id);
 
       expect(result).toStrictEqual([mockIdea, mockIdea2]);
-      expect(ideaRepository.createQueryBuilder).toHaveBeenCalledWith('idea');
-      expect(ideaRepository.createQueryBuilder().where).toHaveBeenCalledWith(
-        'idea.domain = :domainId',
-        {
-          domainId: mockDomain.id,
-        },
-      );
-      expect(
-        ideaRepository.createQueryBuilder().getMany,
-      ).toHaveBeenCalledWith(/* nothing */);
-      expect(
-        ideaRepository.createQueryBuilder().where().getMany,
-      ).toHaveBeenCalledTimes(1);
+      expect(ideaRepository.query.mock.calls[0][0]).toMatchInlineSnapshot(`
+        "SELECT idea.*, SUM(vote.type) as score 
+                  FROM idea
+                  LEFT JOIN vote ON idea.id = vote.\\"ideaId\\"
+                  WHERE idea.\\"domainId\\" = $1
+                  GROUP BY idea.id
+                  ORDER BY score DESC
+                  LIMIT $2
+                  OFFSET $3;"
+      `);
+      expect(ideaRepository.query).toHaveBeenCalledTimes(1);
     });
   });
 
