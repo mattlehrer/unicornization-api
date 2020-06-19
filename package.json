@@ -1,11 +1,11 @@
 {
-  "name": "nest-ts-starter",
+  "name": "unicornization-api",
   "private": true,
   "version": "1.0.0",
-  "description": "Nest TypeScript starter with static testing",
-  "license": "MIT",
+  "description": "REST API for Unicornization, a social network for parked domains",
+  "license": "None",
   "scripts": {
-    "prebuild": "rimraf dist",
+    "prebuild": "./node_modules/rimraf/bin.js dist",
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
