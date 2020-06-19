@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 export default (): Record<string, unknown> => ({
   env: process.env.NODE_ENV,
   server: {
-    port: parseInt(process.env.PORT, 10),
+    port: parseInt(process.env.SERVER_PORT, 10),
     baseUrl: process.env.BASE_URL,
   },
   traefik: {
