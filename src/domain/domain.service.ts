@@ -118,8 +118,11 @@ export class DomainService {
     const results = await redisPipeline
       // https://docs.traefik.io/reference/dynamic-configuration/kv/
       // https://docs.traefik.io/routing/routers/
-      .set(`traefik/http/routers/${domain}/rule`, `Host(\`${domain}\`)`)
-      .set(`http/routers/${domain}/tls`, 'true')
+      .set(
+        `traefik/http/routers/${domain}/rule`,
+        `Host(\`${domain}\`) || Host(\`www.${domain}\`)`,
+      )
+      .set(`traefik/http/routers/${domain}/tls`, 'true')
       .set(`traefik/http/routers/${domain}/tls/certResolver`, 'letsencrypt')
       .set(
         `traefik/http/routers/${domain}/service`,
