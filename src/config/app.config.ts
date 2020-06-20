@@ -51,6 +51,10 @@ export default (): Record<string, unknown> => ({
     httpOnly: true,
     sameSite: 'none',
     secure: process.env.NODE_ENV === 'production',
+    domain:
+      process.env.NODE_ENV === 'production'
+        ? process.env.COOKIE_DOMAIN
+        : undefined,
     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
   },
   pino: {
