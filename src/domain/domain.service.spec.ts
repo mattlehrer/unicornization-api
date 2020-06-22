@@ -443,13 +443,13 @@ describe('DomainService', () => {
         .toMatchInlineSnapshot(`
         Array [
           "traefik/http/routers/mock.com/rule",
-          "Host(\`mock.com\`)",
+          "Host(\`mock.com\`) || Host(\`www.mock.com\`)",
         ]
       `);
       expect(redisService.getClient().multi().set.mock.calls[1])
         .toMatchInlineSnapshot(`
         Array [
-          "http/routers/mock.com/tls",
+          "traefik/http/routers/mock.com/tls",
           "true",
         ]
       `);
