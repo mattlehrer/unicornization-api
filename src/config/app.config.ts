@@ -10,6 +10,7 @@ export default (): Record<string, unknown> => ({
   },
   traefik: {
     service: process.env.TRAEFIK_SERVICE,
+    ip: process.env.TRAEFIK_IP,
   },
   redis: {
     // https://github.com/skunight/nestjs-redis

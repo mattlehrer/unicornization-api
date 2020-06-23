@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import * as dns from 'dns';
 import { EventEmitter } from 'events';
 import { EVENT_EMITTER_TOKEN } from 'nest-emitter';
 import { RedisService } from 'nestjs-redis';
@@ -105,6 +106,10 @@ describe('DomainService', () => {
   describe('create', () => {
     it('should return domain and emit newDomain event', async () => {
       emitter.emit = jest.fn();
+      dns.promises.Resolver.prototype.resolve4 = jest
+        .fn()
+        .mockResolvedValueOnce(['mock-loadbalancer-ip']);
+      configService.get.mockReturnValueOnce('mock-loadbalancer-ip');
 
       const result = await domainService.create({
         user: mockUser as User,
@@ -119,8 +124,12 @@ describe('DomainService', () => {
       expect(emitter.emit).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw ConflictException on dup username/email', async () => {
+    it('should throw ConflictException on dup domain name', async () => {
       emitter.emit = jest.fn();
+      dns.promises.Resolver.prototype.resolve4 = jest
+        .fn()
+        .mockResolvedValueOnce(['mock-loadbalancer-ip']);
+      configService.get.mockReturnValueOnce('mock-loadbalancer-ip');
       const query = 'blah';
       const parameters = [];
       const driverError = {
@@ -148,6 +157,10 @@ describe('DomainService', () => {
 
     it('should throw InternalServerErrorException on db error', async () => {
       mockDomain.save.mockRejectedValueOnce(new Error('Test'));
+      dns.promises.Resolver.prototype.resolve4 = jest
+        .fn()
+        .mockResolvedValueOnce(['mock-loadbalancer-ip']);
+      configService.get.mockReturnValueOnce('mock-loadbalancer-ip');
       emitter.emit = jest.fn();
 
       const result = await domainService

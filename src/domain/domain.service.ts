@@ -1,13 +1,17 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as dns from 'dns';
 import { InjectEventEmitter } from 'nest-emitter';
 import { RedisService } from 'nestjs-redis';
+import * as psl from 'psl';
 import { LoggerService } from 'src/logger/logger.service';
 import { PostgresErrorCode } from 'src/shared/interfaces/postgres.enum';
 import { User } from 'src/user/user.entity';
@@ -31,8 +35,22 @@ export class DomainService {
   }
 
   async create({ name, user }: { name: FQDN; user: User }): Promise<Domain> {
-    const domain = this.domainRepository.create({ name, user });
+    // ensure only second level domains are added
+    const domainName = psl.get(name);
+    if (domainName !== toFQDN(name))
+      throw new BadRequestException('Not a second level domain');
 
+    // only create domain if dns is set up
+    const hasVerifiedDNS = await this.verifyDNS(domainName);
+    if (!hasVerifiedDNS) throw new BadRequestException('DNS not configured');
+    // TODO:
+    // add to queue to verify dns and save anyway
+    const domain = this.domainRepository.create({
+      name: domainName,
+      user,
+      hasVerifiedDNS,
+      lastVerifiedDNS: new Date(),
+    });
     await this.handleSave(domain);
     await this.addDomainToTraefik(domain.name);
 
@@ -65,7 +83,12 @@ export class DomainService {
   }
 
   async findOneByName(name: FQDN): Promise<Domain> {
-    return await this.domainRepository.findOne({ name: toFQDN(name) });
+    const parsed = psl.parse(name);
+    if (parsed.error) throw new BadRequestException();
+    const parsedDomain = parsed as psl.ParsedDomain;
+    if (![null, 'www'].includes(parsedDomain.subdomain))
+      throw new NotFoundException();
+    return await this.domainRepository.findOne({ name: parsedDomain.domain });
   }
 
   async findAllDomainsOfAUser(userId: number): Promise<Domain[]> {
@@ -152,6 +175,18 @@ export class DomainService {
   https://docs.nestjs.com/techniques/queues
   
   */
+
+  async verifyDNS(hostName: FQDN): Promise<boolean> {
+    const resolver = new dns.promises.Resolver();
+    let results: string[];
+    try {
+      results = await resolver.resolve4(hostName);
+      this.logger.debug(results);
+    } catch (err) {
+      this.logger.error(JSON.stringify(err));
+    }
+    return results[0] === this.configService.get('traefik.ip');
+  }
 
   private continueIfAuthorized(domain: Domain, user: User) {
     if (domain.user !== user && !user.isAdmin()) {
