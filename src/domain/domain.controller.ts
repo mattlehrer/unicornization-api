@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
@@ -15,6 +16,7 @@ import {
   UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
+import * as psl from 'psl';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { IUserRequest } from 'src/shared/interfaces/user-request.interface';
 import { Domain, FQDN } from './domain.entity';
@@ -41,7 +43,19 @@ export class DomainController {
 
   @Get('/:name')
   async getByName(@Param('name') name: FQDN): Promise<Domain> {
-    const domain = await this.domainService.findOneByName(name);
+    let parsedHost: psl.ParsedDomain & psl.ParseError;
+    let parseError: psl.ParseError;
+    try {
+      parsedHost = psl.parse(name) as psl.ParsedDomain;
+    } catch (err) {
+      parseError = err;
+    }
+    if (parseError || !parsedHost.domain)
+      throw new BadRequestException('Not an FQDN');
+    const parsedDomain = parsedHost as psl.ParsedDomain;
+    if (![null, 'www'].includes(parsedDomain.subdomain))
+      throw new BadRequestException('Only second level domains are valid');
+    const domain = await this.domainService.findOneByName(parsedDomain.domain);
     if (domain) return domain;
     throw new NotFoundException();
   }
