@@ -68,7 +68,7 @@ export class AnalyticsService implements OnModuleInit {
       `Ready to send ${JSON.stringify(domain, null, 2)} to analytics service`,
     );
     this.analytics.track({
-      userId: domain.user.id,
+      userId: domainObj.user.id,
       event: 'Added Domain',
       properties: domain,
     });
@@ -80,7 +80,7 @@ export class AnalyticsService implements OnModuleInit {
       `Ready to send ${JSON.stringify(idea, null, 2)} to analytics service`,
     );
     this.analytics.track({
-      userId: idea.user.id,
+      userId: ideaObj.user.id,
       event: 'Added Idea',
       properties: idea,
     });
@@ -92,7 +92,7 @@ export class AnalyticsService implements OnModuleInit {
       `Ready to send ${JSON.stringify(vote, null, 2)} to analytics service`,
     );
     this.analytics.track({
-      userId: vote.user.id,
+      userId: voteObj.user.id,
       event: 'Added Vote',
       properties: vote,
     });
