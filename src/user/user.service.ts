@@ -252,6 +252,8 @@ export class UserService {
       }
     }
 
+    // TODO: if email is updated, send reconfirmation and set email confirmed to false
+
     if (Object.entries(fieldsToUpdate).length > 0) {
       try {
         await user.save();
