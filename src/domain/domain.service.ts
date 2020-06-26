@@ -130,6 +130,9 @@ export class DomainService {
   async deleteOne({ id, user }: { id: number; user: User }): Promise<void> {
     const domain = await this.findOneById(id);
 
+    // Unauthorized vs NotFound better for security?
+    if (!domain) throw new UnauthorizedException();
+
     this.continueIfAuthorized(domain, user);
 
     const result = await this.domainRepository.softDelete(domain.id);
@@ -168,9 +171,6 @@ export class DomainService {
 
   /* 
   
-  TODO: Verify DNS
-  https://nodejs.org/api/dns.html
-  
   use a jobs queue
   https://docs.nestjs.com/techniques/queues
   
@@ -182,14 +182,15 @@ export class DomainService {
     try {
       results = await resolver.resolve4(hostName);
       this.logger.debug(results);
+      return results[0] === this.configService.get('traefik.ip');
     } catch (err) {
       this.logger.error(JSON.stringify(err));
     }
-    return results[0] === this.configService.get('traefik.ip');
+    return false;
   }
 
   private continueIfAuthorized(domain: Domain, user: User) {
-    if (domain.user !== user && !user.isAdmin()) {
+    if (domain.user.id !== user.id && !user.isAdmin()) {
       throw new UnauthorizedException();
     }
   }
