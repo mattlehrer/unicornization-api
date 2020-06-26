@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<User> {
-    // TODO: implement JWT blacklist
+    // TODO: implement JWT banned list
     const { sub } = payload;
 
     return await this.userService.findOneById(sub);
