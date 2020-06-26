@@ -11,7 +11,7 @@ import cookieSession = require('cookie-session');
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    // logger: false,
+    logger: !(process.env.NODE_ENV === 'production'),
   });
   app.useLogger(await app.resolve(LoggerService));
   const configService = app.get(ConfigService);
