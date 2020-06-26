@@ -119,6 +119,9 @@ export default (): Record<string, unknown> => ({
     },
     shouldSendInDev: false, // set to true to send emails when NODE_ENV is !== production
   },
+  segment: {
+    writeKey: process.env.SEGMENT_WRITE_KEY,
+  },
 });
 
 function ensureRouteEndsInSlash(route: string) {

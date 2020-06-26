@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as classTransformer from 'class-transformer';
 import { EventEmitter } from 'events';
@@ -6,9 +7,11 @@ import { LoggerService } from 'src/logger/logger.service';
 import { AnalyticsService } from './analytics.service';
 
 jest.mock('src/logger/logger.service');
+jest.mock('analytics-node');
 
 describe('AnalyticsService', () => {
   let analyticsService: AnalyticsService;
+  let configService: ConfigService;
   let emitter;
 
   beforeEach(async () => {
@@ -17,10 +20,12 @@ describe('AnalyticsService', () => {
         AnalyticsService,
         { provide: EVENT_EMITTER_TOKEN, useClass: EventEmitter },
         LoggerService,
+        ConfigService,
       ],
     }).compile();
 
     analyticsService = module.get<AnalyticsService>(AnalyticsService);
+    configService = module.get<ConfigService>(ConfigService);
     emitter = module.get<EventEmitter>(EVENT_EMITTER_TOKEN);
   });
 
